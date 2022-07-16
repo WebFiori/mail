@@ -12,8 +12,11 @@ Sockets-based library for sending HTML email messages.
   <a href="https://sonarcloud.io/dashboard?id=WebFiori_mail">
       <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_mail&metric=alert_status" />
   </a>
-  <a href="https://packagist.org/packages/webfiori/mail">
-    <img src="https://img.shields.io/packagist/dt/webfiori/mail?color=light-green">
+  <a href="https://github.com/WebFiori/mail/releases">
+      <img src="https://img.shields.io/github/release/WebFiori/mail.svg?label=latest" />
+  </a>
+  <a href="https://packagist.org/packages/webfiori/mailer">
+    <img src="https://img.shields.io/packagist/dt/webfiori/mailer?color=light-green">
   </a>
 </p>
 
