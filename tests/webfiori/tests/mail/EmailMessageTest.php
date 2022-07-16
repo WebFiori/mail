@@ -1,22 +1,39 @@
 <?php
-namespace webfiori\framework\test\mail;
+namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\framework\mail\EmailMessage;
-use webfiori\framework\mail\SMTPAccount;
-use webfiori\framework\WebFioriApp;
+use webfiori\email\EmailMessage;
+use webfiori\email\SMTPAccount;
 /**
  * A test class for testing the class 'webfiori\framework\mail\EmailMessage'.
  *
  * @author Ibrahim
  */
 class EmailMessageTest extends TestCase {
-    
+    private $acc00 = [
+        'port' => 587,
+        'server-address' => 'outlook.office365.com',
+        'user' => 'randomxyz@hotmail.com',
+        'pass' => '???',
+        'sender-name' => 'Ibrahim',
+        'sender-address' => 'randomxyz@hotmail.com',
+        'account-name' => 'no-reply'
+    ];
+    private $acc01 = [
+        'port' => 465,
+        'server-address' => 'smtp.gmail.com',
+        'user' => 'randomxyz@gmail.com',
+        'pass' => '???',
+        'sender-name' => 'Ibrahim',
+        'sender-address' => 'randomxyz@gmail.com',
+        'account-name' => 'no-reply2'
+    ];
     /**
      * @test
      */
     public function testAddReciver00() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $this->assertFalse($sm->addTo('', ''));
         $this->assertFalse($sm->addTo('', 'Hello'));
         $this->assertFalse($sm->addTo('', 'hello@web.com'));
@@ -25,7 +42,8 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testAddReciver01() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $this->assertTrue($sm->addTo('   hello@>hello.com ', '  <Hello'));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getToStr());
         $this->assertEquals('Hello',$sm->getTo()['hello@hello.com']);
@@ -38,7 +56,8 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testAddReciver02() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $this->assertTrue($sm->addCC(' hello@>hello.com   ', ' <Hello '));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getCCStr());
         $this->assertEquals('Hello',$sm->getCC()['hello@hello.com']);
@@ -51,7 +70,8 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testAddReciver03() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $this->assertTrue($sm->addBCC(' hello@>hello.com   ', '   <Hello',true,true));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getBCCStr());
         $this->assertEquals('Hello',$sm->getBCC()['hello@hello.com']);
@@ -64,7 +84,8 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testConstructor00() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $this->assertEquals('',$sm->getSMTPServer()->getLastResponse());
         $this->assertSame(0,$sm->getSMTPServer()->getLastResponseCode());
         $this->assertSame(0,$sm->getPriority());
@@ -74,7 +95,8 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSetPriority00() {
-        $sm = new EmailMessage('no-reply');
+        $account = new SMTPAccount($this->acc00);
+        $sm = new EmailMessage($account);
         $sm->setPriority(-2);
         $this->assertSame(-1,$sm->getPriority());
         $sm->setPriority(100);
@@ -87,14 +109,6 @@ class EmailMessageTest extends TestCase {
         $this->assertSame(1,$sm->getPriority());
         $sm->setPriority(0);
         $this->assertSame(0,$sm->getPriority());
-    }
-    /**
-     * @test
-     */
-    public function test00() {
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('No SMTP account was found which has the name "not exist".');
-        $message = new EmailMessage('not exist');
     }
     /**
      * @test
