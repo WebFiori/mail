@@ -1,0 +1,31 @@
+{
+    "name": "webfiori/mailer",
+    "description": "Sockets-based library for sending HTML email messages.",
+    "authors": [
+        {
+            "name": "Ibrahim BinAlshikh",
+            "email": "ibrahim@webfiori.com"
+        }
+    ],
+    "license":"MIT",
+    "require": {
+        "php": ">=7.0",
+        "webfiori/file":"*",
+        "webfiori/ui":"*"
+    },
+    "require-dev": {
+        
+    },
+    "keywords": [
+        "php",
+        "email",
+        "mail",
+        "html",
+        "sockets"
+    ],
+    "autoload" :{
+        "psr-4":{
+            "webfiori\\email\\":"webfiori\\email"
+        }
+    }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit stderr="true" colors="true" bootstrap="tests/bootstrap.php">
+    <php>
+    </php>
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <file>./src/webfiori/email/EmailMessage.php</file>
+            <file>./src/webfiori/email/SMTPAccount.php</file>
+            <file>./src/webfiori/email/SMTPServer.php</file>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-clover" target="clover.xml"/>
+    </logging>
+    <testsuites>
+        <testsuite name="Tests">
+            <directory>./tests/webfiori/tests/mail</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
