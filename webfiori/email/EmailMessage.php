@@ -1,14 +1,10 @@
 <?php
 namespace webfiori\email;
 
-use webfiori\framework\exceptions\MissingLangException;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\file\File;
-use webfiori\framework\i18n\Language;
-use webfiori\framework\WebFioriApp;
 use webfiori\ui\HTMLDoc;
 use webfiori\ui\HTMLNode;
-use Throwable;
 /**
  * A class that can be used to write HTML formatted Email messages.
  *
@@ -137,30 +133,38 @@ class EmailMessage {
      * @param File|string $fileObjOrFilePath An object of type 'File'. This also can 
      * be the absolute path to a file in the file system.
      * 
-     * @return boolean If the file is added, the method will return true. 
+     * @return bool If the file is added, the method will return true. 
      * Other than that, the method will return false.
      * 
      * @since 2.0
      */
-    public function addAttachment($fileObjOrFilePath) {
+    public function addAttachment($fileObjOrFilePath) : bool {
         $retVal = false;
 
         $type = gettype($fileObjOrFilePath);
 
         if ($type == 'string') {
-            if (file_exists($fileObjOrFilePath)) {
-                $this->attachments[] = $fileObjOrFilePath;
-                $retVal = true;
-            }
+            $fileObj = new File($fileObjOrFilePath);
+        } else if ($fileObjOrFilePath instanceof File) {
+            $fileObj = $fileObjOrFilePath;
         } else {
-            if (class_exists('webfiori\file\File') && $fileObjOrFilePath instanceof File 
-                && (file_exists($fileObjOrFilePath->getAbsolutePath()) || file_exists(str_replace('\\', '/', $fileObjOrFilePath->getAbsolutePath())) || $fileObjOrFilePath->getRawData() !== null)) {
-                $this->attachments[] = $fileObjOrFilePath;
-                $retVal = true;
-            }
+            $fileObj = null;
+        }
+        if ($fileObj instanceof File && $fileObj->isExist()) {
+            $this->attachments[] = $fileObj;
+            $retVal = true;
         }
 
         return $retVal;
+    }
+    /**
+     * Returns an array that contains the information of all added attachments.
+     * 
+     * @return array An array that contains the information of all added attachments.
+     * Each index will contain the attachment as object of type File.
+     */
+    public function getAttachments() {
+        return $this->attachments;
     }
     /**
      * Adds new receiver address to the list of 'bcc' receivers.
@@ -247,7 +251,7 @@ class EmailMessage {
      * 
      * @since 2.0
      */
-    public function addTo(string $address, $name = null) {
+    public function addTo(string $address, string $name = null) {
         return $this->_addAddress($address, $name, 'to');
     }
     /**
@@ -541,7 +545,7 @@ class EmailMessage {
             $this->subject = $trimmed;
         }
     }
-    private function _addAddress(string $address, string $name, string $type) {
+    private function _addAddress(string $address, string $name = null, string $type = 'to') {
         $nameTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
         $addressTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
 
@@ -563,17 +567,16 @@ class EmailMessage {
      * @since 1.3
      */
     private function _appendAttachments() {
-        if (count($this->attachments) != 0) {
-            foreach ($this->attachments as $file) {
-                if ($file->getRawData() === null) {
-                    $file->read();
-                }
-                $content = $file->getRawData();
-                $contentChunk = chunk_split(base64_encode($content));
+        $atts = $this->getAttachments();
+        
+        if (count($atts) != 0) {
+            foreach ($atts as $fileObj) {
+                $fileObj->read();
+                $contentChunk = chunk_split($fileObj->getRawData(true));
                 $this->smtpServer->sendCommand('--'.$this->boundry);
-                $this->smtpServer->sendCommand('Content-Type: '.$file->getFileMIMEType().'; name="'.$file->getName().'"');
+                $this->smtpServer->sendCommand('Content-Type: '.$fileObj->getMIME().'; name="'.$fileObj->getName().'"');
                 $this->smtpServer->sendCommand('Content-Transfer-Encoding: base64');
-                $this->smtpServer->sendCommand('Content-Disposition: attachment; filename="'.$file->getName().'"'.SMTPServer::NL);
+                $this->smtpServer->sendCommand('Content-Disposition: attachment; filename="'.$fileObj->getName().'"'.SMTPServer::NL);
                 $this->smtpServer->sendCommand($contentChunk);
             }
             $this->smtpServer->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);

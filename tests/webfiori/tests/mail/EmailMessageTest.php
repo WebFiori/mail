@@ -4,6 +4,7 @@ namespace webfiori\tests\mail;
 use PHPUnit\Framework\TestCase;
 use webfiori\email\EmailMessage;
 use webfiori\email\SMTPAccount;
+use webfiori\email\SMTPServer;
 /**
  * A test class for testing the class 'webfiori\framework\mail\EmailMessage'.
  *
@@ -21,11 +22,11 @@ class EmailMessageTest extends TestCase {
     ];
     private $acc01 = [
         'port' => 465,
-        'server-address' => 'smtp.gmail.com',
-        'user' => 'randomxyz@gmail.com',
-        'pass' => '???',
+        'server-address' => 'mail.programmingacademia.com',
+        'user' => 'test@programmingacademia.com',
+        'pass' => 'KnvcbxFYCz77',
         'sender-name' => 'Ibrahim',
-        'sender-address' => 'randomxyz@gmail.com',
+        'sender-address' => 'test@programmingacademia.com',
         'account-name' => 'no-reply2'
     ];
     /**
@@ -109,6 +110,41 @@ class EmailMessageTest extends TestCase {
         $this->assertSame(1,$sm->getPriority());
         $sm->setPriority(0);
         $this->assertSame(0,$sm->getPriority());
+    }
+    /**
+     * @test
+     */
+    public function testSend00() {
+        $message = new EmailMessage(new SMTPAccount($this->acc01));
+        $message->setSubject('Test Email From WebFiori');
+        $message->setPriority(1);
+        $message->insert('p')->text('Super test message.');
+        $message->addTo('ibinshikh@outlook.com');
+        $message->addBeforeSend(function (EmailMessage $m, TestCase $c) {
+            $c->assertTrue($m->addAttachment(__DIR__.DIRECTORY_SEPARATOR.'Attach00.txt'));
+            $c->assertFalse($m->addAttachment('NotExtst.txt'));
+            $c->assertFalse($m->addAttachment(new \webfiori\file\File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
+            $c->assertTrue($m->addAttachment(new \webfiori\file\File(__DIR__.DIRECTORY_SEPARATOR.'favicon.png')));
+        }, [$this]);
+        $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
+                . '<html>'.SMTPServer::NL
+                . '    <head>'.SMTPServer::NL
+                . '        <title>'.SMTPServer::NL
+                . '            Default'.SMTPServer::NL
+                . '        </title>'.SMTPServer::NL
+                . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
+                . '    </head>'.SMTPServer::NL
+                . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            Super test message.'.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '    </body>'.SMTPServer::NL
+                . '</html>'.SMTPServer::NL, $message->getDocument()->toHTML());
+        $message->addBeforeSend(function (EmailMessage $m, TestCase $c) {
+            $c->assertEquals(2, count($m->getAttachments()));
+        }, [$this]); 
+        $message->send();
+        $this->assertTrue(true);
     }
     /**
      * @test
