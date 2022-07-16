@@ -4,9 +4,9 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./src/webfiori/email/EmailMessage.php</file>
-            <file>./src/webfiori/email/SMTPAccount.php</file>
-            <file>./src/webfiori/email/SMTPServer.php</file>
+            <file>./webfiori/email/EmailMessage.php</file>
+            <file>./webfiori/email/SMTPAccount.php</file>
+            <file>./webfiori/email/SMTPServer.php</file>
         </whitelist>
     </filter>
     <logging>
