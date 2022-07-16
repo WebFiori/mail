@@ -1,9 +1,9 @@
 <?php
 
-namespace webfiori\framework\test\mail;
+namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\framework\mail\SMTPServer;
+use webfiori\email\SMTPServer;
 /**
  * Description of TestSMTPServer
  *
