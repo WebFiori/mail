@@ -129,6 +129,7 @@ class EmailMessage {
         $this->document = new HTMLDoc();
 
         $this->smtpAcc = $sendAccount;
+        $this->smtpServer = new SMTPServer($sendAccount->getServerAddress(), $sendAccount->getPort());
     }
     /**
      * Adds a file as email attachment.
@@ -474,7 +475,7 @@ class EmailMessage {
     public function send() {
         
         $acc = $this->getSMTPAccount();
-        $this->smtpServer = new SMTPServer($acc->getServerAddress(), $acc->getPort());
+        
         $this->runBeforeSend();
         if ($this->smtpServer->authLogin($acc->getUsername(), $acc->getPassword())) {
             $this->smtpServer->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
