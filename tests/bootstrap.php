@@ -36,6 +36,19 @@ require_once $fileLibPath.'UploadErr.php';
 require_once $fileLibPath.'MIME.php';
 require_once $fileLibPath.'exceptions'.DS.'FileException.php';
 
+$collectionsLibPath = $rootDir.'vendor'.$DS.'webfiori'.$DS.'collections'.$DS.'webfiori'.$DS.'collections'.$DS;
+require_once $collectionsLibPath.'Node.php';
+require_once $collectionsLibPath.'AbstractCollection.php';
+require_once $collectionsLibPath.'LinkedList.php';
+require_once $collectionsLibPath.'Stack.php';
+require_once $collectionsLibPath.'Queue.php';
+require_once $collectionsLibPath.'Comparable.php';
+
+$uiLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'ui'.DS.'webfiori'.DS.'ui'.DS;
+require_once $uiLibPath.'HTMLNode.php';
+require_once $uiLibPath.'HTMLDoc.php';
+require_once $uiLibPath.'HeadNode.php';
+
 $libDir = $rootDir.'webfiori'.DS.'email'.DS;
 
 require_once $libDir.'SMTPAccount.php';
