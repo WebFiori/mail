@@ -120,7 +120,6 @@ class EmailMessage {
         $this->attachments = [];
         $this->inReplyTo = [];
         $this->beforeSendPool = [];
-        $this->beforeRenderPool = [];
         $this->afterSendPool = [];
         $this->document = new HTMLDoc();
 
