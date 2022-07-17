@@ -545,6 +545,28 @@ class EmailMessage {
             $this->subject = $trimmed;
         }
     }
+    /**
+     * Sets the display language of the email.
+     * 
+     * The length of the given string must be 2 characters in order to set the 
+     * language code.
+     * 
+     * @param string $lang a two characters language code such as AR or EN. Default 
+     * value is 'EN'.
+     * 
+     */
+    public function setLang(string $langCode = 'EN') : bool {
+        $langU = strtoupper(trim($langCode));
+
+        if (strlen($langU) == 2) {
+            $this->contentLang = $langU;
+            $this->getDocument()->setLanguage($langU);
+            
+            return true;
+        }
+        
+        return false;
+    }
     private function _addAddress(string $address, string $name = null, string $type = 'to') {
         $nameTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
         $addressTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
