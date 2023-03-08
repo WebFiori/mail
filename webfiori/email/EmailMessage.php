@@ -3,6 +3,7 @@ namespace webfiori\email;
 
 use webfiori\email\exceptions\SMTPException;
 use webfiori\file\File;
+use webfiori\ui\exceptions\InvalidNodeNameException;
 use webfiori\ui\HTMLDoc;
 use webfiori\ui\HTMLNode;
 /**
@@ -102,16 +103,16 @@ class EmailMessage {
     /**
      * Creates new instance of the class.
      * 
-     * @param string $sendAccount The SMTP connection that will be 
+     * @param SMTPAccount $sendAccount The SMTP connection that will be
      * used to send the message.
      * 
      * @since 1.0
      */
-    public function __construct(SMTPAccount $sendAccount) {
+    public function __construct(SMTPAccount $sendAccount = null) {
         $this->log = [];
         $this->priority = 0;
-        $this->subject = 'Hello From WebFiori Framework';
-        $this->boundry = hash('sha256', date(DATE_ISO8601));
+        $this->subject = 'Hello Email Message';
+        $this->boundry = hash('sha256', date('Y-m-d\TH:i:sO'));
         $this->receiversArr = [
             'cc' => [],
             'bcc' => [],
@@ -120,12 +121,23 @@ class EmailMessage {
         $this->attachments = [];
         $this->inReplyTo = [];
         $this->beforeSendPool = [];
-        $this->beforeRenderPool = [];
         $this->afterSendPool = [];
         $this->document = new HTMLDoc();
 
-        $this->smtpAcc = $sendAccount;
-        $this->smtpServer = new SMTPServer($sendAccount->getServerAddress(), $sendAccount->getPort());
+        if ($sendAccount !== null) {
+            $this->setSMTPAccount($sendAccount);
+        }
+    }
+
+    /**
+     * Sets SMTP account that will be used by SMTP server.
+     *
+     * @param SMTPAccount $account An account that holds connection information.
+     *
+     */
+    public function setSMTPAccount(SMTPAccount $account) {
+        $this->smtpAcc = $account;
+        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
     }
     /**
      * Adds a file as email attachment.
@@ -161,9 +173,9 @@ class EmailMessage {
      * Returns an array that contains the information of all added attachments.
      * 
      * @return array An array that contains the information of all added attachments.
-     * Each index will contain the attachment as object of type File.
+     * Each index will contain the attachment as object of type 'File'.
      */
-    public function getAttachments() {
+    public function getAttachments() : array {
         return $this->attachments;
     }
     /**
@@ -171,15 +183,15 @@ class EmailMessage {
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
      * 
-     * @param string $name An optional receiver name. If not provided, the 
+     * @param string|null $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return boolean If the address is added, the method will return 
+     * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
      * @since 2.0
      */
-    public function addBCC(string $address, $name = null) {
+    public function addBCC(string $address, string $name = null): bool {
         if ($name === null) {
             $name = $address;
         }
@@ -233,12 +245,12 @@ class EmailMessage {
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return boolean If the address is added, the method will return 
+     * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
      * @since 2.0
      */
-    public function addCC(string $address, $name = null) {
+    public function addCC(string $address, string $name = null) : bool {
         return $this->addAddressHelper($address, $name, 'cc');
     }
     /**
@@ -249,12 +261,12 @@ class EmailMessage {
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return boolean If the address is added, the method will return 
+     * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
      * @since 2.0
      */
-    public function addTo(string $address, string $name = null) {
+    public function addTo(string $address, string $name = null) : bool {
         if ($name === null) {
             $name = $address;
         }
@@ -286,7 +298,7 @@ class EmailMessage {
      * @since 1.0.3
      */
     public function getBCCStr() : string {
-        return $this->_getReceiversStr('bcc');
+        return $this->getReceiversStrHelper('bcc');
     }
     /**
      * Returns an associative array that contains the names and the addresses 
@@ -314,7 +326,7 @@ class EmailMessage {
      * @since 1.0.3
      */
     public function getCCStr() : string {
-        return $this->_getReceiversStr('cc');
+        return $this->getReceiversStrHelper('cc');
     }
     /**
      * Returns a child node given its ID.
@@ -427,24 +439,26 @@ class EmailMessage {
      * @since 1.0.3
      */
     public function getToStr() : string {
-        return $this->_getReceiversStr('to');
+        return $this->getReceiversStrHelper('to');
     }
+
     /**
      * Adds a child node inside the body of a node given its ID.
-     * 
-     * @param HTMLNode|string $node The node that will be inserted. Also, 
+     *
+     * @param HTMLNode|string $node The node that will be inserted. Also,
      * this can be the tag name of the node such as 'div'.
-     * 
-     * @param string|null $parentNodeId The ID of the node that the given node 
-     * will be inserted to. If null is given, the node will be added directly inside 
+     *
+     * @param string|null $parentNodeId The ID of the node that the given node
+     * will be inserted to. If null is given, the node will be added directly inside
      * the element &lt;body&gt;. Default value is null.
-     * 
-     * @return HTMLNode|null The method will return the inserted 
+     *
+     * @return HTMLNode|null The method will return the inserted
      * node if it was inserted. If it is not, the method will return null.
-     * 
+     *
+     * @throws InvalidNodeNameException
      * @since 1.0.5
      */
-    public function insert($node, $parentNodeId = null) {
+    public function insert($node, string $parentNodeId = null) {
         if (gettype($node) == 'string') {
             $node = new HTMLNode($node);
         }
@@ -456,6 +470,8 @@ class EmailMessage {
 
             return $node;
         }
+        
+        return null;
     }
     /**
      * Execute all the callbacks which are set to execute before sending the
@@ -489,11 +505,11 @@ class EmailMessage {
         $this->runBeforeSend();
         if ($this->smtpServer->authLogin($acc->getUsername(), $acc->getPassword())) {
             $this->smtpServer->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
-            $this->_receiversCommand('to');
-            $this->_receiversCommand('cc');
-            $this->_receiversCommand('bcc');
+            $this->receiversCommandHelper('to');
+            $this->receiversCommandHelper('cc');
+            $this->receiversCommandHelper('bcc');
             $this->smtpServer->sendCommand('DATA');
-            $importanceHeaderVal = $this->_priorityCommand();
+            $importanceHeaderVal = $this->priorityCommandHelper();
 
             $this->smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable');
             $this->smtpServer->sendCommand('Importance: '.$importanceHeaderVal);
@@ -519,19 +535,18 @@ class EmailMessage {
     /**
      * Sets the priority of the message.
      * 
-     * @param int $priority The priority of the message. -1 for non-urgent, 0 
+     * @param int $messagePriority The priority of the message. -1 for non-urgent, 0 
      * for normal and 1 for urgent. If the passed value is greater than 1, 
      * then 1 will be used. If the passed value is less than -1, then -1 is 
      * used. Other than that, 0 will be used.
      * 
      * @since 2.0
      */
-    public function setPriority(int $priority) {
-        $asInt = intval($priority);
+    public function setPriority(int $messagePriority) {
 
-        if ($asInt <= -1) {
+        if ($messagePriority <= -1) {
             $this->priority = -1;
-        } else if ($asInt >= 1) {
+        } else if ($messagePriority >= 1) {
             $this->priority = 1;
         } else {
             $this->priority = 0;
@@ -551,7 +566,7 @@ class EmailMessage {
             $this->subject = $trimmed;
         }
     }
-    private function addAddressHelper(string $address, string $name, string $type = 'to') {
+    private function addAddressHelper(string $address, string $name, string $type = 'to') : bool {
         $nameTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
         $addressTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
 
@@ -567,16 +582,18 @@ class EmailMessage {
 
         return false;
     }
+
     /**
      * A method that is used to include email attachments.
-     * 
+     *
+     * @throws SMTPException
      * @since 1.3
      */
     private function _appendAttachments() {
-        $atts = $this->getAttachments();
+        $files = $this->getAttachments();
         
-        if (count($atts) != 0) {
-            foreach ($atts as $fileObj) {
+        if (count($files) != 0) {
+            foreach ($files as $fileObj) {
                 $fileObj->read();
                 $contentChunk = chunk_split($fileObj->getRawData(true));
                 $this->smtpServer->sendCommand('--'.$this->boundry);
@@ -588,7 +605,7 @@ class EmailMessage {
             $this->smtpServer->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);
         }
     }
-    private function _getReceiversStr($type) {
+    private function getReceiversStrHelper(string $type) : string {
         $arr = [];
 
         foreach ($this->receiversArr[$type] as $address => $name) {
@@ -597,7 +614,11 @@ class EmailMessage {
 
         return implode(',', $arr);
     }
-    private function _priorityCommand() {
+
+    /**
+     * @throws SMTPException
+     */
+    private function priorityCommandHelper(): string {
         $priorityAsInt = $this->getPriority();
         $priorityHeaderVal = self::PRIORITIES[$priorityAsInt];
 
@@ -614,7 +635,11 @@ class EmailMessage {
 
         return $importanceHeaderVal;
     }
-    private function _receiversCommand($type) {
+
+    /**
+     * @throws SMTPException
+     */
+    private function receiversCommandHelper($type) {
         foreach ($this->receiversArr[$type] as $address => $name) {
             $this->smtpServer->sendCommand('RCPT TO: <'.$address.'>');
         }
@@ -627,7 +652,7 @@ class EmailMessage {
      * 
      * @return string The string after its control characters trimmed.
      */
-    private function trimControlChars($str) {
+    private function trimControlChars(string $str) : string {
         return trim($str, "\x00..\x20");
     }
     /**
@@ -637,7 +662,7 @@ class EmailMessage {
      * 
      * @since 1.0.5
      */
-    public function getDocument() {
+    public function getDocument() : HTMLDoc {
         return $this->document;
     }
 }
