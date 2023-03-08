@@ -180,7 +180,10 @@ class EmailMessage {
      * @since 2.0
      */
     public function addBCC(string $address, $name = null) {
-        return $this->_addAddress($address, $name, 'bcc');
+        if ($name === null) {
+            $name = $address;
+        }
+        return $this->addAddressHelper($address, $name, 'bcc');
     }
     /**
      * Adds a callback to execute before the message is sent.
@@ -236,7 +239,7 @@ class EmailMessage {
      * @since 2.0
      */
     public function addCC(string $address, $name = null) {
-        return $this->_addAddress($address, $name, 'cc');
+        return $this->addAddressHelper($address, $name, 'cc');
     }
     /**
      * Adds new receiver address to the list of 'to' receivers.
@@ -252,7 +255,10 @@ class EmailMessage {
      * @since 2.0
      */
     public function addTo(string $address, string $name = null) {
-        return $this->_addAddress($address, $name, 'to');
+        if ($name === null) {
+            $name = $address;
+        }
+        return $this->addAddressHelper($address, $name, 'to');
     }
     /**
      * Returns an associative array that contains the names and the addresses 
@@ -501,7 +507,7 @@ class EmailMessage {
             $this->smtpServer->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
             $this->smtpServer->sendCommand('--'.$this->boundry);
             $this->smtpServer->sendCommand('Content-Type: text/html; charset="UTF-8"'.SMTPServer::NL);
-            $this->smtpServer->sendCommand($this->_trimControlChars($this->getDocument()->toHTML()));
+            $this->smtpServer->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
             $this->_appendAttachments();
             $this->smtpServer->sendCommand(SMTPServer::NL.'.');
             $this->smtpServer->sendCommand('QUIT');
@@ -539,15 +545,15 @@ class EmailMessage {
      * @since 2.0
      */
     public function setSubject(string $subject) {
-        $trimmed = $this->_trimControlChars($subject);
+        $trimmed = $this->trimControlChars($subject);
 
         if (strlen($trimmed) > 0) {
             $this->subject = $trimmed;
         }
     }
-    private function _addAddress(string $address, string $name = null, string $type = 'to') {
-        $nameTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
-        $addressTrimmed = $this->_trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
+    private function addAddressHelper(string $address, string $name, string $type = 'to') {
+        $nameTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
+        $addressTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
 
         if (strlen($nameTrimmed) == 0) {
             $nameTrimmed = $addressTrimmed;
@@ -621,7 +627,7 @@ class EmailMessage {
      * 
      * @return string The string after its control characters trimmed.
      */
-    private function _trimControlChars($str) {
+    private function trimControlChars($str) {
         return trim($str, "\x00..\x20");
     }
     /**
