@@ -21,16 +21,16 @@ Sockets-based library for sending HTML email messages.
 </p>
 
 ## Supported PHP Versions
-| Build Status |
-|:-----------:|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.0/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.1/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.2/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.3/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.4/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.0/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.1/badge.svg?branch=main"></a>|
-|<a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.2/badge.svg?branch=main"></a><br>(dev)|
+|                                                                                        Build Status                                                                                        |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.0/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.1/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.2/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.3/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%207.4/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.0/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.1/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.2/badge.svg?branch=main"></a>  |
 
 ## Usage
 
@@ -61,7 +61,7 @@ $smtp = new SMTPAccount([
 
 ## Creating Email Message
 
-After having the account information, an instance of the class `EmailMessage` can be created. The class will represent the acctuall message that will be send.
+After having the account information, an instance of the class `EmailMessage` can be created. The class will represent the actual message that will be sent.
 
 ``` php
 require '../vendor/autoload.php';
