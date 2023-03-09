@@ -56,7 +56,7 @@ class SMTPAccount {
      */
     private $port;
     /**
-     * The user name that is used to login.
+     * The username that is used to log-in.
      * 
      * @var string
      * 
@@ -71,7 +71,7 @@ class SMTPAccount {
      * <ul>
      * <li><b>port</b>: SMTP server port address. usually 25 or 465.</li>
      * <li><b>server-address</b>: SMTP server address.</li>
-     * <li><b>user</b>: The username at which it is used to login to SMTP server.</li>
+     * <li><b>user</b>: The username at which it is used to log in to SMTP server.</li>
      * <li><b>pass</b>: The password of the user</li>
      * <li><b>sender-name</b>: The name of the sender that will appear when the 
      * message is sent.</li>
@@ -244,7 +244,7 @@ class SMTPAccount {
      * @since 1.0
      */
     public function setPort(int $port) {
-        $this->port = intval($port);
+        $this->port = $port;
     }
     /**
      * Sets the name of the email account.

@@ -30,9 +30,9 @@ $fileLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'file'.DS.'webfiori'.DS.'file'
 
 require_once $fileLibPath.'File.php';
 require_once $fileLibPath.'MIME.php';
-require_once $fileLibPath.'Uploader.php';
-require_once $fileLibPath.'UploadFile.php';
-require_once $fileLibPath.'UploadErr.php';
+require_once $fileLibPath.'FileUploader.php';
+require_once $fileLibPath.'UploadedFile.php';
+require_once $fileLibPath.'UploaderConst.php';
 require_once $fileLibPath.'MIME.php';
 require_once $fileLibPath.'exceptions'.DS.'FileException.php';
 
