@@ -367,7 +367,7 @@ class EmailMessage {
      * @since 1.0.4
      */
     public function getLog() : array {
-        return $this->smtpServer->getLog();
+        return $this->getSMTPServer()->getLog();
     }
     /**
      * Returns the priority of the message.
@@ -503,33 +503,35 @@ class EmailMessage {
         $acc = $this->getSMTPAccount();
         
         $this->runBeforeSend();
-        if ($this->smtpServer->authLogin($acc->getUsername(), $acc->getPassword())) {
-            $this->smtpServer->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
+        $server = $this->getSMTPServer();
+        
+        if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
+            $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
             $this->receiversCommandHelper('to');
             $this->receiversCommandHelper('cc');
             $this->receiversCommandHelper('bcc');
-            $this->smtpServer->sendCommand('DATA');
+            $server->sendCommand('DATA');
             $importanceHeaderVal = $this->priorityCommandHelper();
 
-            $this->smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable');
-            $this->smtpServer->sendCommand('Importance: '.$importanceHeaderVal);
-            $this->smtpServer->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
-            $this->smtpServer->sendCommand('To: '.$this->getToStr());
-            $this->smtpServer->sendCommand('CC: '.$this->getCCStr());
-            $this->smtpServer->sendCommand('BCC: '.$this->getBCCStr());
-            $this->smtpServer->sendCommand('Date:'.date('r (T)'));
-            $this->smtpServer->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
-            $this->smtpServer->sendCommand('MIME-Version: 1.0');
-            $this->smtpServer->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
-            $this->smtpServer->sendCommand('--'.$this->boundry);
-            $this->smtpServer->sendCommand('Content-Type: text/html; charset="UTF-8"'.SMTPServer::NL);
-            $this->smtpServer->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
-            $this->_appendAttachments();
-            $this->smtpServer->sendCommand(SMTPServer::NL.'.');
-            $this->smtpServer->sendCommand('QUIT');
+            $server->sendCommand('Content-Transfer-Encoding: quoted-printable');
+            $server->sendCommand('Importance: '.$importanceHeaderVal);
+            $server->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
+            $server->sendCommand('To: '.$this->getToStr());
+            $server->sendCommand('CC: '.$this->getCCStr());
+            $server->sendCommand('BCC: '.$this->getBCCStr());
+            $server->sendCommand('Date:'.date('r (T)'));
+            $server->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
+            $server->sendCommand('MIME-Version: 1.0');
+            $server->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
+            $server->sendCommand('--'.$this->boundry);
+            $server->sendCommand('Content-Type: text/html; charset="UTF-8"'.SMTPServer::NL);
+            $server->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
+            $this->appendAttachments();
+            $server->sendCommand(SMTPServer::NL.'.');
+            $server->sendCommand('QUIT');
             $this->runAfterSend();
         } else {
-            throw new SMTPException('Unable to login to SMTP server: '.$this->smtpServer->getLastResponse(), $this->smtpServer->getLastResponseCode());
+            throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode());
         }
     }
     /**
@@ -589,20 +591,22 @@ class EmailMessage {
      * @throws SMTPException
      * @since 1.3
      */
-    private function _appendAttachments() {
+    private function appendAttachments() {
         $files = $this->getAttachments();
         
         if (count($files) != 0) {
+            $server = $this->getSMTPServer();
+            
             foreach ($files as $fileObj) {
                 $fileObj->read();
                 $contentChunk = chunk_split($fileObj->getRawData(true));
-                $this->smtpServer->sendCommand('--'.$this->boundry);
-                $this->smtpServer->sendCommand('Content-Type: '.$fileObj->getMIME().'; name="'.$fileObj->getName().'"');
-                $this->smtpServer->sendCommand('Content-Transfer-Encoding: base64');
-                $this->smtpServer->sendCommand('Content-Disposition: attachment; filename="'.$fileObj->getName().'"'.SMTPServer::NL);
-                $this->smtpServer->sendCommand($contentChunk);
+                $server->sendCommand('--'.$this->boundry);
+                $server->sendCommand('Content-Type: '.$fileObj->getMIME().'; name="'.$fileObj->getName().'"');
+                $server->sendCommand('Content-Transfer-Encoding: base64');
+                $server->sendCommand('Content-Disposition: attachment; filename="'.$fileObj->getName().'"'.SMTPServer::NL);
+                $server->sendCommand($contentChunk);
             }
-            $this->smtpServer->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);
+            $server->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);
         }
     }
     private function getReceiversStrHelper(string $type) : string {
@@ -624,14 +628,12 @@ class EmailMessage {
 
         if ($priorityAsInt == -1) {
             $importanceHeaderVal = 'low';
+        } else if ($priorityAsInt == 1) {
+            $importanceHeaderVal = 'High';
         } else {
-            if ($priorityAsInt == 1) {
-                $importanceHeaderVal = 'High';
-            } else {
-                $importanceHeaderVal = 'normal';
-            }
+            $importanceHeaderVal = 'normal';
         }
-        $this->smtpServer->sendCommand('Priority: '.$priorityHeaderVal);
+        $this->getSMTPServer()->sendCommand('Priority: '.$priorityHeaderVal);
 
         return $importanceHeaderVal;
     }
@@ -640,8 +642,10 @@ class EmailMessage {
      * @throws SMTPException
      */
     private function receiversCommandHelper($type) {
+        $server = $this->getSMTPServer();
+        
         foreach ($this->receiversArr[$type] as $address => $name) {
-            $this->smtpServer->sendCommand('RCPT TO: <'.$address.'>');
+            $server->sendCommand('RCPT TO: <'.$address.'>');
         }
     }
     /**
