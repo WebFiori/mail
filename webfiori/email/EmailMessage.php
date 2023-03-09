@@ -25,6 +25,7 @@ class EmailMessage {
         0 => 'normal',
         1 => 'urgent'
     ];
+    private $afterSendPool;
     /**
      * An array that contains an objects of type 'File' or 
      * file path. 
@@ -43,7 +44,6 @@ class EmailMessage {
      * @since 1.0.6
      */
     private $beforeSendPool;
-    private $afterSendPool;
     /**
      * A boundary variable used to separate email message parts.
      * 
@@ -69,6 +69,7 @@ class EmailMessage {
     private $inReplyTo;
 
     private $log;
+    private $priority;
     /**
      * 
      * @var array
@@ -99,7 +100,6 @@ class EmailMessage {
      * @since 2.0
      */
     private $subject;
-    private $priority;
     /**
      * Creates new instance of the class.
      * 
@@ -128,16 +128,24 @@ class EmailMessage {
             $this->setSMTPAccount($sendAccount);
         }
     }
-
     /**
-     * Sets SMTP account that will be used by SMTP server.
-     *
-     * @param SMTPAccount $account An account that holds connection information.
-     *
+     * Adds a callback to execute after the message is sent.
+     * 
+     * @param callable $callback A function that will get executed before sending
+     * the message. Note that the first parameter of the callback will be always
+     * the message (e.g. function (EmailMessage $message) {})
+     * 
+     * @param array $extraParams An optional array of extra parameters that will
+     * be passed to the callback.
+     * 
+     * @since 1.0.6
      */
-    public function setSMTPAccount(SMTPAccount $account) {
-        $this->smtpAcc = $account;
-        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
+    public function addAfterSend(callable $callback, array $extraParams = []) {
+        $this->beforeSendPool[] = [
+            'func' => $callback,
+            'params' => array_merge([$this], $extraParams),
+            'executed' => false
+        ];
     }
     /**
      * Adds a file as email attachment.
@@ -162,21 +170,13 @@ class EmailMessage {
         } else {
             $fileObj = null;
         }
+
         if ($fileObj instanceof File && $fileObj->isExist()) {
             $this->attachments[] = $fileObj;
             $retVal = true;
         }
 
         return $retVal;
-    }
-    /**
-     * Returns an array that contains the information of all added attachments.
-     * 
-     * @return array An array that contains the information of all added attachments.
-     * Each index will contain the attachment as object of type 'File'.
-     */
-    public function getAttachments() : array {
-        return $this->attachments;
     }
     /**
      * Adds new receiver address to the list of 'bcc' receivers.
@@ -195,6 +195,7 @@ class EmailMessage {
         if ($name === null) {
             $name = $address;
         }
+
         return $this->addAddressHelper($address, $name, 'bcc');
     }
     /**
@@ -210,27 +211,6 @@ class EmailMessage {
      * @since 1.0.6
      */
     public function addBeforeSend(callable $callback, array $extraParams = []) {
-        
-        $this->beforeSendPool[] = [
-            'func' => $callback,
-            'params' => array_merge([$this], $extraParams),
-            'executed' => false
-        ];
-    }
-    /**
-     * Adds a callback to execute after the message is sent.
-     * 
-     * @param callable $callback A function that will get executed before sending
-     * the message. Note that the first parameter of the callback will be always
-     * the message (e.g. function (EmailMessage $message) {})
-     * 
-     * @param array $extraParams An optional array of extra parameters that will
-     * be passed to the callback.
-     * 
-     * @since 1.0.6
-     */
-    public function addAfterSend(callable $callback, array $extraParams = []) {
-        
         $this->beforeSendPool[] = [
             'func' => $callback,
             'params' => array_merge([$this], $extraParams),
@@ -270,7 +250,17 @@ class EmailMessage {
         if ($name === null) {
             $name = $address;
         }
+
         return $this->addAddressHelper($address, $name, 'to');
+    }
+    /**
+     * Returns an array that contains the information of all added attachments.
+     * 
+     * @return array An array that contains the information of all added attachments.
+     * Each index will contain the attachment as object of type 'File'.
+     */
+    public function getAttachments() : array {
+        return $this->attachments;
     }
     /**
      * Returns an associative array that contains the names and the addresses 
@@ -340,6 +330,16 @@ class EmailMessage {
      */
     public function getChildByID(string $id) {
         return $this->getDocument()->getChildByID($id);
+    }
+    /**
+     * Returns the document that is associated with the page.
+     * 
+     * @return HTMLDoc An object of type 'HTMLDoc'.
+     * 
+     * @since 1.0.5
+     */
+    public function getDocument() : HTMLDoc {
+        return $this->document;
     }
     /**
      * Returns the language code of the email.
@@ -470,18 +470,8 @@ class EmailMessage {
 
             return $node;
         }
-        
+
         return null;
-    }
-    /**
-     * Execute all the callbacks which are set to execute before sending the
-     * message.
-     */
-    public function runBeforeSend() {
-        foreach ($this->beforeSendPool as $callArr) {
-            call_user_func_array($callArr['func'], $callArr['params']);
-            $callArr['executed'] = true;
-        }
     }
     /**
      * Execute all the callbacks which are set to execute after sending the
@@ -494,17 +484,26 @@ class EmailMessage {
         }
     }
     /**
+     * Execute all the callbacks which are set to execute before sending the
+     * message.
+     */
+    public function runBeforeSend() {
+        foreach ($this->beforeSendPool as $callArr) {
+            call_user_func_array($callArr['func'], $callArr['params']);
+            $callArr['executed'] = true;
+        }
+    }
+    /**
      * Sends the message and set message instance to null.
      * 
      * @since 1.0
      */
     public function send() {
-        
         $acc = $this->getSMTPAccount();
-        
+
         $this->runBeforeSend();
         $server = $this->getSMTPServer();
-        
+
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
             $this->receiversCommandHelper('to');
@@ -545,7 +544,6 @@ class EmailMessage {
      * @since 2.0
      */
     public function setPriority(int $messagePriority) {
-
         if ($messagePriority <= -1) {
             $this->priority = -1;
         } else if ($messagePriority >= 1) {
@@ -553,6 +551,17 @@ class EmailMessage {
         } else {
             $this->priority = 0;
         }
+    }
+
+    /**
+     * Sets SMTP account that will be used by SMTP server.
+     *
+     * @param SMTPAccount $account An account that holds connection information.
+     *
+     */
+    public function setSMTPAccount(SMTPAccount $account) {
+        $this->smtpAcc = $account;
+        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
     }
     /**
      * Sets the subject of the message.
@@ -593,10 +602,10 @@ class EmailMessage {
      */
     private function appendAttachments() {
         $files = $this->getAttachments();
-        
+
         if (count($files) != 0) {
             $server = $this->getSMTPServer();
-            
+
             foreach ($files as $fileObj) {
                 $fileObj->read();
                 $contentChunk = chunk_split($fileObj->getRawData(true));
@@ -643,7 +652,7 @@ class EmailMessage {
      */
     private function receiversCommandHelper($type) {
         $server = $this->getSMTPServer();
-        
+
         foreach ($this->receiversArr[$type] as $address => $name) {
             $server->sendCommand('RCPT TO: <'.$address.'>');
         }
@@ -658,15 +667,5 @@ class EmailMessage {
      */
     private function trimControlChars(string $str) : string {
         return trim($str, "\x00..\x20");
-    }
-    /**
-     * Returns the document that is associated with the page.
-     * 
-     * @return HTMLDoc An object of type 'HTMLDoc'.
-     * 
-     * @since 1.0.5
-     */
-    public function getDocument() : HTMLDoc {
-        return $this->document;
     }
 }
