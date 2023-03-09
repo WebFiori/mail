@@ -142,10 +142,12 @@ class SMTPServer {
 
             if (is_resource($this->serverCon)) {
                 $this->_log('-', 0, $this->read());
+
                 if ($this->getLastResponseCode() != 220) {
                     $this->_log('Connect', 0, 'Server did not respond with code 220 during initial connection.');
                     throw new SMTPException($this->getLastLogEntry()['message']);
                 }
+
                 if ($this->sendHello()) {
                     //We might need to switch to secure connection.
                     $retVal = $this->checkStartTls();
@@ -169,6 +171,29 @@ class SMTPServer {
      */
     public function getHost() : string {
         return $this->serverHost;
+    }
+    /**
+     * Returns an array that contains last log entry.
+     * 
+     * @return array The array will have 4 indices, 'command', 'code',
+     * 'message' and 'time'.
+     * 
+     * @since 1.0.1
+     */
+    public function getLastLogEntry() : array {
+        $entries = $this->getLog();
+        $entriesCount = count($entries);
+
+        if ($entriesCount != 0) {
+            return $entries[$entriesCount - 1];
+        }
+
+        return [
+            'command' => '',
+            'code' => 0,
+            'message' => '',
+            'time' => ''
+        ];
     }
     /**
      * Returns the last response message which was sent by the server.
@@ -214,28 +239,6 @@ class SMTPServer {
      */
     public function getLog() : array {
         return $this->responseLog;
-    }
-    /**
-     * Returns an array that contains last log entry.
-     * 
-     * @return array The array will have 4 indices, 'command', 'code',
-     * 'message' and 'time'.
-     * 
-     * @since 1.0.1
-     */
-    public function getLastLogEntry() : array {
-        $entries = $this->getLog();
-        $entriesCount = count($entries);
-        
-        if ($entriesCount != 0) {
-            return $entries[$entriesCount - 1];
-        }
-        return [
-            'command' => '',
-            'code' => 0,
-            'message' => '',
-            'time' => ''
-        ];
     }
     /**
      * Returns SMTP server port number.
@@ -304,10 +307,10 @@ class SMTPServer {
      */
     public function read() : string {
         $message = '';
-        
+
         while (!feof($this->serverCon)) {
             $str = fgets($this->serverCon);
-            
+
             if ($str !== false) {
                 $message .= $str;
 
@@ -410,30 +413,6 @@ class SMTPServer {
             $this->responseTimeout = $val;
         }
     }
-    private function checkStartTls() : bool {
-        if (in_array('STARTTLS', $this->getServerOptions())) {
-            if ($this->switchToTls()) {
-                $this->sendHello();
-
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return true;
-        }
-    }
-    private function getTransport() : string {
-        $port = $this->getPort();
-
-        if ($port == 465) {
-            return "ssl://";
-        } else if ($port == 587) {
-            return "tls://";
-        }
-
-        return '';
-    }
     private function _log($command, $code, $message) {
         $this->responseLog[] = [
             'command' => $command,
@@ -455,44 +434,6 @@ class SMTPServer {
             }
             $index++;
         }
-    }
-    /**
-     * Sets the code that was the result of executing SMTP command.
-     * 
-     * @param string $serverResponseMessage The last message which was sent by 
-     * the server after executing specific command.
-     * 
-     * @since 1.0
-     */
-    private function setLastResponseCode(string $serverResponseMessage) {
-        if (strlen($serverResponseMessage) != 0) {
-            $firstNum = $serverResponseMessage[0];
-            $firstAsInt = intval($firstNum);
-
-            if ($firstAsInt != 0) {
-                $secNum = $serverResponseMessage[1];
-                $thirdNum = $serverResponseMessage[2];
-                $this->lastResponseCode = intval($firstNum) * 100 + (intval($secNum * 10)) + (intval($thirdNum));
-            }
-        }
-    }
-    private function switchToTls() : bool {
-        $this->sendCommand('STARTTLS');
-        $cryptoMethod = STREAM_CRYPTO_METHOD_TLS_CLIENT;
-
-        if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
-            $cryptoMethod |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
-            $cryptoMethod |= STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
-        }
-
-
-        $success = stream_socket_enable_crypto(
-            $this->serverCon,
-            true,
-            $cryptoMethod
-        );
-
-        return $success === true;
     }
     private function _tryConnect($protocol) {
         $host = $this->getHost();
@@ -531,5 +472,67 @@ class SMTPServer {
         }
 
         return $conn;
+    }
+    private function checkStartTls() : bool {
+        if (in_array('STARTTLS', $this->getServerOptions())) {
+            if ($this->switchToTls()) {
+                $this->sendHello();
+
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+    private function getTransport() : string {
+        $port = $this->getPort();
+
+        if ($port == 465) {
+            return "ssl://";
+        } else if ($port == 587) {
+            return "tls://";
+        }
+
+        return '';
+    }
+    /**
+     * Sets the code that was the result of executing SMTP command.
+     * 
+     * @param string $serverResponseMessage The last message which was sent by 
+     * the server after executing specific command.
+     * 
+     * @since 1.0
+     */
+    private function setLastResponseCode(string $serverResponseMessage) {
+        if (strlen($serverResponseMessage) != 0) {
+            $firstNum = $serverResponseMessage[0];
+            $firstAsInt = intval($firstNum);
+
+            if ($firstAsInt != 0) {
+                $secNum = $serverResponseMessage[1];
+                $thirdNum = $serverResponseMessage[2];
+                $this->lastResponseCode = intval($firstNum) * 100 + (intval($secNum * 10)) + (intval($thirdNum));
+            }
+        }
+    }
+    private function switchToTls() : bool {
+        $this->sendCommand('STARTTLS');
+        $cryptoMethod = STREAM_CRYPTO_METHOD_TLS_CLIENT;
+
+        if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
+            $cryptoMethod |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+            $cryptoMethod |= STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
+        }
+
+
+        $success = stream_socket_enable_crypto(
+            $this->serverCon,
+            true,
+            $cryptoMethod
+        );
+
+        return $success === true;
     }
 }
