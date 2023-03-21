@@ -53,13 +53,6 @@ class EmailMessage {
      */
     private $boundry;
     /**
-     * 
-     * @var string
-     * 
-     * @since 1.0.5
-     */
-    private $contentLang;
-    /**
      *
      * @var HTMLDoc 
      * 
@@ -350,7 +343,7 @@ class EmailMessage {
      * @since 1.0.5
      */
     public function getLang() {
-        return $this->contentLang;
+        return $this->getDocument()->getLanguage();
     }
     /**
      * Returns an array that contains log messages which are generated 
@@ -532,6 +525,27 @@ class EmailMessage {
         } else {
             throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode());
         }
+    }
+    /**
+     * Sets the display language of the email.
+     * 
+     * The length of the given string must be 2 characters in order to set the 
+     * language code.
+     * 
+     * @param string $langCode a two characters language code such as AR or EN. Default 
+     * value is 'EN'.
+     * 
+     */
+    public function setLang(string $langCode = 'EN') : bool {
+        $langU = strtoupper(trim($langCode));
+
+        if (strlen($langU) == 2) {
+            $this->getDocument()->setLanguage($langU);
+            
+            return true;
+        }
+        
+        return false;
     }
     /**
      * Sets the priority of the message.
