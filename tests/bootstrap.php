@@ -17,6 +17,7 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 }
 define('ROOT_DIR', $rootDir);
 define('DS', DIRECTORY_SEPARATOR);
+define('EMAIL_STORAGE_DIR', $rootDir.DS.'mailStorage');
 //echo 'Root Directory: \''.$rootDir.'\'.'."\n";
 $jsonLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'jsonx'.DS.'webfiori'.DS.'json';
 require_once $jsonLibPath.DS.'JsonI.php';
@@ -46,11 +47,15 @@ require_once $collectionsLibPath.'Comparable.php';
 
 $uiLibPath = $rootDir.'vendor'.DS.'webfiori'.DS.'ui'.DS.'webfiori'.DS.'ui'.DS;
 require_once $uiLibPath.'HTMLNode.php';
+require_once $uiLibPath.'TableCell.php';
+require_once $uiLibPath.'TableRow.php';
+require_once $uiLibPath.'HTMLTable.php';
 require_once $uiLibPath.'HTMLDoc.php';
 require_once $uiLibPath.'HeadNode.php';
 
 $libDir = $rootDir.'webfiori'.DS.'email'.DS;
 
+require_once $libDir.'HeadersTable.php';
 require_once $libDir.'SMTPAccount.php';
 require_once $libDir.'SMTPServer.php';
 require_once $libDir.'EmailMessage.php';

@@ -2,6 +2,7 @@
 namespace webfiori\email;
 
 use webfiori\email\exceptions\SMTPException;
+use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
 use webfiori\ui\exceptions\InvalidNodeNameException;
 use webfiori\ui\HTMLDoc;
@@ -487,16 +488,67 @@ class EmailMessage {
         }
     }
     /**
-     * Sends the message and set message instance to null.
+     * Saves the email as HTML web page.
+     * 
+     * This method will attempt to create a folder which has same subject
+     * as the email. Inside the folder, it will attempt to create HTML
+     * web page which holds the actual email. The name of the file
+     * will be date and time at which the file was created at.
+     * 
+     * @param string $folderPath The location at which the email will be
+     * stored at.
+     */
+    public function storeEmail(string $folderPath) {
+        
+        $this->runBeforeSend();
+        $acc = $this->getSMTPAccount();
+        
+        $headersTable = new HeadersTable();
+        $headersTable->addHeader('Importance', $this->priorityCommandHelper());
+        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
+        $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
+        $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
+        $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
+        $headersTable->addHeader('Date', date('r (T)'));
+        $headersTable->addHeader('Subject', $this->getSubject());
+        $atts = '';
+        foreach ($this->getAttachments() as $fileObj) {
+            $atts .= $fileObj->getName().' ';
+        }
+        $headersTable->addHeader('Attachments', $atts);
+        $this->runAfterSend();
+        $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
+        $this->getDocument()->getBody()->insert($headersTable, 0);
+
+        $file = new File($folderPath.DIRECTORY_SEPARATOR.$this->getSubject().DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
+        $file->setRawData($this->getDocument()->toHTML(true).'');
+        $file->write(false, true);
+    }
+    /**
+     * Sends the message.
+     * 
+     * Note that if in testing environment, the method will attempt to store
+     * the email as HTML web page. Testing environment is set when the constant
+     * EMAIL_TESTING is defined and set to true in addition to having the
+     * constant EMAIL_TESTING_PATH is defined.
      * 
      * @since 1.0
      */
     public function send() {
+        if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
+            //Testing mode. Store email instead of sending.
+            if (!defined('EMAIL_TESTING_STORE_PATH') || !File::isDirectory(EMAIL_TESTING_PATH, true)) {
+                throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
+            }
+            $this->storeEmail(EMAIL_TESTING_PATH);
+            
+            return;
+        }
         $acc = $this->getSMTPAccount();
 
         $this->runBeforeSend();
         $server = $this->getSMTPServer();
-
+        
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
             $this->receiversCommandHelper('to');
@@ -508,9 +560,9 @@ class EmailMessage {
             $server->sendCommand('Content-Transfer-Encoding: quoted-printable');
             $server->sendCommand('Importance: '.$importanceHeaderVal);
             $server->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
-            $server->sendCommand('To: '.$this->getToStr());
-            $server->sendCommand('CC: '.$this->getCCStr());
-            $server->sendCommand('BCC: '.$this->getBCCStr());
+            $server->sendCommand('To: '.$this->getReceiversStrHelper('to'), false);
+            $server->sendCommand('CC: '.$this->getReceiversStrHelper('cc'), false);
+            $server->sendCommand('BCC: '.$this->getReceiversStrHelper('bcc'), false);
             $server->sendCommand('Date:'.date('r (T)'));
             $server->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
             $server->sendCommand('MIME-Version: 1.0');
@@ -589,6 +641,7 @@ class EmailMessage {
 
         if (strlen($trimmed) > 0) {
             $this->subject = $trimmed;
+            $this->getDocument()->getHeadNode()->setTitle($trimmed);
         }
     }
     private function addAddressHelper(string $address, string $name, string $type = 'to') : bool {
@@ -632,11 +685,15 @@ class EmailMessage {
             $server->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);
         }
     }
-    private function getReceiversStrHelper(string $type) : string {
+    private function getReceiversStrHelper(string $type, bool $encode = true) : string {
         $arr = [];
 
         foreach ($this->receiversArr[$type] as $address => $name) {
-            $arr[] = '=?UTF-8?B?'.base64_encode($name).'?='.' <'.$address.'>';
+            if ($encode === true) {
+                $arr[] = '=?UTF-8?B?'.base64_encode($name).'?='.' <'.$address.'>';
+            } else {
+                $arr[] = $name.' <'.$address.'>';
+            }
         }
 
         return implode(',', $arr);
