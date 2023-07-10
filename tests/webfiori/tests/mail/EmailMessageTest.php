@@ -3,9 +3,10 @@ namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\email\EmailMessage;
+use webfiori\email\exceptions\SMTPException;
 use webfiori\email\SMTPAccount;
 use webfiori\email\SMTPServer;
-use webfiori\email\exceptions\SMTPException;
+use webfiori\file\File;
 /**
  * A test class for testing the class 'webfiori\framework\mail\EmailMessage'.
  *
@@ -133,14 +134,14 @@ class EmailMessageTest extends TestCase {
         $message->addBeforeSend(function (EmailMessage $m, TestCase $c) {
             $c->assertTrue($m->addAttachment(__DIR__.DIRECTORY_SEPARATOR.'Attach00.txt'));
             $c->assertFalse($m->addAttachment('NotExtst.txt'));
-            $c->assertFalse($m->addAttachment(new \webfiori\file\File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
-            $c->assertTrue($m->addAttachment(new \webfiori\file\File(__DIR__.DIRECTORY_SEPARATOR.'favicon.png')));
+            $c->assertFalse($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
+            $c->assertTrue($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'favicon.png')));
         }, [$this]);
         $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
                 . '<html>'.SMTPServer::NL
                 . '    <head>'.SMTPServer::NL
                 . '        <title>'.SMTPServer::NL
-                . '            Default'.SMTPServer::NL
+                . '            Test Email From WebFiori'.SMTPServer::NL
                 . '        </title>'.SMTPServer::NL
                 . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
                 . '    </head>'.SMTPServer::NL
