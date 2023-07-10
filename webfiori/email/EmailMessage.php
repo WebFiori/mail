@@ -641,7 +641,7 @@ class EmailMessage {
 
         if (strlen($trimmed) > 0) {
             $this->subject = $trimmed;
-            $this->getDocument()->getHeadNode()->setTitle($trimmed);
+            $this->getDocument()->getHeadNode()->setPageTitle($trimmed);
         }
     }
     private function addAddressHelper(string $address, string $name, string $type = 'to') : bool {
