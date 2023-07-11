@@ -25,9 +25,9 @@ class HeadersTable extends HTMLTable {
     }
     public function addHeader(string $name, string $value) {
         $this->addRow([]);
-        $this->getCell($this->childrenCount() - 1, 1)->text($value, false);
+        $this->getCell($this->childrenCount() - 1, 1)->text($value, true);
         $this->getCell($this->childrenCount() - 1, 0)->setStyle([
             'font-weight' => 'bold'
-        ])->text($name);
+        ])->text($name, true);
     }
 }
