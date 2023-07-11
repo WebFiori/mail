@@ -519,7 +519,9 @@ class EmailMessage {
         $this->runAfterSend();
         $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
         $this->getDocument()->getBody()->insert($headersTable, 0);
-
+        
+        $name = str_replace(':?\\//*<>|', '', $this->getSubject());
+        
         $file = new File($folderPath.DIRECTORY_SEPARATOR.$this->getSubject().DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
@@ -537,7 +539,7 @@ class EmailMessage {
     public function send() {
         if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
             //Testing mode. Store email instead of sending.
-            if (!defined('EMAIL_TESTING_STORE_PATH') || !File::isDirectory(EMAIL_TESTING_PATH, true)) {
+            if (!defined('EMAIL_TESTING_PATH') || !File::isDirectory(EMAIL_TESTING_PATH, true)) {
                 throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
             }
             $this->storeEmail(EMAIL_TESTING_PATH);
