@@ -13,7 +13,7 @@ use webfiori\ui\HTMLNode;
  * @author Ibrahim
  * @version 1.0.6
  */
-class EmailMessage {
+class Email {
     /**
      * A constant that colds the possible values for the header 'Priority'. 
      * 

@@ -2,7 +2,7 @@
 namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\email\EmailMessage;
+use webfiori\email\Email;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\email\SMTPAccount;
 use webfiori\email\SMTPServer;
@@ -45,7 +45,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testAddReciver00() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $this->assertFalse($sm->addTo('', ''));
         $this->assertFalse($sm->addTo('', 'Hello'));
         $this->assertFalse($sm->addTo('', 'hello@web.com'));
@@ -55,7 +55,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testAddReciver01() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $this->assertTrue($sm->addTo('   hello@>hello.com ', '  <Hello'));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getToStr());
         $this->assertEquals('Hello',$sm->getTo()['hello@hello.com']);
@@ -69,7 +69,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testAddReciver02() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $this->assertTrue($sm->addCC(' hello@>hello.com   ', ' <Hello '));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getCCStr());
         $this->assertEquals('Hello',$sm->getCC()['hello@hello.com']);
@@ -83,7 +83,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testAddReciver03() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $this->assertTrue($sm->addBCC(' hello@>hello.com   ', '   <Hello',true,true));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getBCCStr());
         $this->assertEquals('Hello',$sm->getBCC()['hello@hello.com']);
@@ -97,7 +97,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testConstructor00() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $this->assertEquals('',$sm->getSMTPServer()->getLastResponse());
         $this->assertSame(0,$sm->getSMTPServer()->getLastResponseCode());
         $this->assertSame(0,$sm->getPriority());
@@ -108,7 +108,7 @@ class EmailMessageTest extends TestCase {
      */
     public function testSetPriority00() {
         $account = new SMTPAccount($this->acc00);
-        $sm = new EmailMessage($account);
+        $sm = new Email($account);
         $sm->setPriority(-2);
         $this->assertSame(-1,$sm->getPriority());
         $sm->setPriority(100);
@@ -126,12 +126,12 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSend00() {
-        $message = new EmailMessage(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount($this->acc01));
         $message->setSubject('Test Email From WebFiori');
         $message->setPriority(1);
         $message->insert('p')->text('Super test message.');
         $message->addTo('ibinshikh@outlook.com');
-        $message->addBeforeSend(function (EmailMessage $m, TestCase $c) {
+        $message->addBeforeSend(function (Email $m, TestCase $c) {
             $c->assertTrue($m->addAttachment(__DIR__.DIRECTORY_SEPARATOR.'Attach00.txt'));
             $c->assertFalse($m->addAttachment('NotExtst.txt'));
             $c->assertFalse($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
@@ -151,7 +151,7 @@ class EmailMessageTest extends TestCase {
                 . '        </p>'.SMTPServer::NL
                 . '    </body>'.SMTPServer::NL
                 . '</html>'.SMTPServer::NL, $message->getDocument()->toHTML());
-        $message->addBeforeSend(function (EmailMessage $m, TestCase $c) {
+        $message->addBeforeSend(function (Email $m, TestCase $c) {
             $c->assertEquals(2, count($m->getAttachments()));
         }, [$this]); 
         $message->send();
@@ -163,7 +163,7 @@ class EmailMessageTest extends TestCase {
     public function testSend01() {
         $this->expectException(SMTPException::class);
         $this->expectExceptionMessage('Unable to login to SMTP server: 535 Incorrect authentication data');
-        $message = new EmailMessage(new SMTPAccount($this->acc02));
+        $message = new Email(new SMTPAccount($this->acc02));
         $message->setSubject('Test Email From WebFiori');
         $message->setPriority(1);
         $message->insert('p')->text('Super test message.');
