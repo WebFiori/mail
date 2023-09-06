@@ -264,7 +264,7 @@ class EmailMessageTest extends TestCase {
                 . ''.SMTPServer::NL
                 . '        </p>'.SMTPServer::NL
                 . '    </body>'.SMTPServer::NL
-                . '</html>'.SMTPServer::NL, $message.);
+                . '</html>'.SMTPServer::NL, $message.'');
         
     }
     /**
