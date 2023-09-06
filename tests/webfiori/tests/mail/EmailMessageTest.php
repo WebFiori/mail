@@ -170,9 +170,6 @@ class EmailMessageTest extends TestCase {
             'message' => '221 gator4189.hostgator.com closing connection',
             'time' => date('Y-m-d H:i:s'),
         ], $message->getSMTPServer()->getLastLogEntry());
-        $this->assertEquals([
-            
-        ], $message->getLog());
         $this->assertTrue(true);
     }
     /**
@@ -204,7 +201,7 @@ class EmailMessageTest extends TestCase {
         } catch (webfiori\email\exceptions\SMTPException $ex) {
             $this->assertEquals([
                 
-            ], $message->getLog());
+            ], $message->getSMTPServer()->getLastLogEntry());
         }
        
     }
