@@ -200,7 +200,10 @@ class EmailMessageTest extends TestCase {
             $message->send();
         } catch (SMTPException $ex) {
             $this->assertEquals([
-                
+                'command' => 'MjIzMw==',
+                'code' => 535,
+                'message' => '535 Incorrect authentication data',
+                'time' => date('Y-m-d H:i:s')
             ], $message->getSMTPServer()->getLastLogEntry());
         }
        
