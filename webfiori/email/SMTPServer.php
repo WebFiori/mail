@@ -74,6 +74,7 @@ class SMTPServer {
         $this->lastResponse = '';
         $this->lastResponseCode = 0;
         $this->isWriting = false;
+        $this->responseLog = [];
     }
 
     /**
