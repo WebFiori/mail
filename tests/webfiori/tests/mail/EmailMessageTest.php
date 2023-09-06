@@ -198,7 +198,7 @@ class EmailMessageTest extends TestCase {
         $message->addTo('ibinshikh@outlook.com');
         try {
             $message->send();
-        } catch (webfiori\email\exceptions\SMTPException $ex) {
+        } catch (SMTPException $ex) {
             $this->assertEquals([
                 
             ], $message->getSMTPServer()->getLastLogEntry());
