@@ -165,10 +165,10 @@ class EmailMessageTest extends TestCase {
         }, [$this]); 
         $message->send();
         $this->assertEquals([
-            'command' => '', 
-            'code' => '', 
-            'message' => '', 
-            'time' => ''
+            'command' => 'QUIT',
+            'code' => 221,
+            'message' => '221 gator4189.hostgator.com closing connection',
+            'time' => date('Y-m-d H:i:s'),
         ], $message->getSMTPServer()->getLastLogEntry());
         $this->assertEquals([
             
