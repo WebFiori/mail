@@ -130,6 +130,12 @@ class EmailMessageTest extends TestCase {
      */
     public function testSend00() {
         $message = new Email(new SMTPAccount($this->acc01));
+        $this->assertEquals([
+            'command' => '', 
+            'code' => 0, 
+            'message' => '', 
+            'time' => ''
+        ], $message->getSMTPServer()->getLastLogEntry());
         $message->setSubject('Test Email From WebFiori');
         $message->setPriority(1);
         $message->insert('p')->text('Super test message.');
@@ -158,6 +164,15 @@ class EmailMessageTest extends TestCase {
             $c->assertEquals(2, count($m->getAttachments()));
         }, [$this]); 
         $message->send();
+        $this->assertEquals([
+            'command' => '', 
+            'code' => '', 
+            'message' => '', 
+            'time' => ''
+        ], $message->getSMTPServer()->getLastLogEntry());
+        $this->assertEquals([
+            
+        ], $message->getLog());
         $this->assertTrue(true);
     }
     /**
@@ -173,6 +188,24 @@ class EmailMessageTest extends TestCase {
         $message->addTo('ibinshikh@outlook.com');
         
         $message->send();
+       
+    }
+    /**
+     * @test
+     */
+    public function testSend02() {
+        $message = new Email(new SMTPAccount($this->acc02));
+        $message->setSubject('Test Email From WebFiori');
+        $message->setPriority(1);
+        $message->insert('p')->text('Super test message.');
+        $message->addTo('ibinshikh@outlook.com');
+        try {
+            $message->send();
+        } catch (webfiori\email\exceptions\SMTPException $ex) {
+            $this->assertEquals([
+                
+            ], $message->getLog());
+        }
        
     }
 }
