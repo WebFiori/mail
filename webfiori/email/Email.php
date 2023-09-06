@@ -11,7 +11,6 @@ use webfiori\ui\HTMLNode;
  * A class that can be used to write HTML formatted Email messages.
  *
  * @author Ibrahim
- * @version 1.0.6
  */
 class Email {
     /**
@@ -178,10 +177,6 @@ class Email {
      * 
      */
     public function addBCC(string $address, string $name = null): bool {
-        if ($name === null) {
-            $name = $address;
-        }
-
         return $this->addAddressHelper($address, $name, 'bcc');
     }
     /**
@@ -232,13 +227,8 @@ class Email {
      * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
-     * @since 2.0
      */
     public function addTo(string $address, string $name = null) : bool {
-        if ($name === null) {
-            $name = $address;
-        }
-
         return $this->addAddressHelper($address, $name, 'to');
     }
     /**
@@ -259,7 +249,6 @@ class Email {
      * 
      * @return array An array that contains receivers information.
      * 
-     * @since 1.0.2
      */
     public function getBCC() : array {
         return $this->receiversArr['bcc'];
@@ -273,7 +262,6 @@ class Email {
      * 
      * @return string A string that contains receivers information.
      * 
-     * @since 1.0.3
      */
     public function getBCCStr() : string {
         return $this->getReceiversStrHelper('bcc');
@@ -287,7 +275,6 @@ class Email {
      * 
      * @return array An array that contains receivers information.
      * 
-     * @since 1.0.2
      */
     public function getCC() : array {
         return $this->receiversArr['cc'];
@@ -301,7 +288,6 @@ class Email {
      * 
      * @return string A string that contains receivers information.
      * 
-     * @since 1.0.3
      */
     public function getCCStr() : string {
         return $this->getReceiversStrHelper('cc');
@@ -314,7 +300,6 @@ class Email {
      * @return null|HTMLNode The method returns an object of type HTMLNode. 
      * if found. If no node has the given ID, the method will return null.
      * 
-     * @since 1.0.5
      */
     public function getChildByID(string $id) {
         return $this->getDocument()->getChildByID($id);
@@ -324,7 +309,6 @@ class Email {
      * 
      * @return HTMLDoc An object of type 'HTMLDoc'.
      * 
-     * @since 1.0.5
      */
     public function getDocument() : HTMLDoc {
         return $this->document;
@@ -335,7 +319,6 @@ class Email {
      * @return string|null Two digit language code. In case language is not set, the 
      * method will return null
      * 
-     * @since 1.0.5
      */
     public function getLang() {
         return $this->getDocument()->getLanguage();
@@ -352,7 +335,6 @@ class Email {
      * <li>response-message</li>
      * </ul>
      * 
-     * @since 1.0.4
      */
     public function getLog() : array {
         return $this->getSMTPServer()->getLog();
@@ -363,12 +345,12 @@ class Email {
      * @return int The priority of the message. -1 for non-urgent, 0 
      * for normal and 1 for urgent. Default value is 0.
      * 
-     * @since 2.0
      */
     public function getPriority() : int {
         return $this->priority;
     }
     /**
+     * Returns SMTP connection information which is used to connect to SMTP server.
      * 
      * @return SMTPAccount
      */
@@ -379,13 +361,12 @@ class Email {
      * Returns an object that holds SMTP server information.
      * 
      * The returned instance can be used to access SMTP server messages log 
-     * to see if the message was transfered or not. Note that the 
+     * to see if the message was transferred or not. Note that the 
      * connection to the server will only be established once the 
-     * method 'EmailMessage::send()'.
+     * method 'Email::send()'.
      * 
      * @return SMTPServer An instance which represents SMTP server.
      * 
-     * @since 1.0.5
      */
     public function getSMTPServer() : SMTPServer {
         return $this->smtpServer;
@@ -396,7 +377,6 @@ class Email {
      * @return string The subject of the email. Default return value is 
      * 'Hello From WebFiori Framework'.
      * 
-     * @since 2.0
      */
     public function getSubject() : string {
         return $this->subject;
@@ -410,7 +390,6 @@ class Email {
      * 
      * @return array An array that contains receivers information.
      * 
-     * @since 1.0.2
      */
     public function getTo() : array {
         return $this->receiversArr['to'];
@@ -424,7 +403,6 @@ class Email {
      * 
      * @return string A string that contains receivers information.
      * 
-     * @since 1.0.3
      */
     public function getToStr() : string {
         return $this->getReceiversStrHelper('to');
@@ -444,7 +422,6 @@ class Email {
      * node if it was inserted. If it is not, the method will return null.
      *
      * @throws InvalidNodeNameException
-     * @since 1.0.5
      */
     public function insert($node, string $parentNodeId = null) {
         if (gettype($node) == 'string') {
@@ -465,7 +442,7 @@ class Email {
      * Execute all the callbacks which are set to execute after sending the
      * message.
      */
-    public function runAfterSend() {
+    public function invokeAfterSend() {
         foreach ($this->afterSendPool as $callArr) {
             call_user_func_array($callArr['func'], $callArr['params']);
             $callArr['executed'] = true;
@@ -475,7 +452,7 @@ class Email {
      * Execute all the callbacks which are set to execute before sending the
      * message.
      */
-    public function runBeforeSend() {
+    public function invokeBeforeSend() {
         foreach ($this->beforeSendPool as $callArr) {
             call_user_func_array($callArr['func'], $callArr['params']);
             $callArr['executed'] = true;
@@ -494,7 +471,7 @@ class Email {
      */
     public function storeEmail(string $folderPath) {
         
-        $this->runBeforeSend();
+        $this->invokeBeforeSend();
         $acc = $this->getSMTPAccount();
         
         $headersTable = new HeadersTable();
@@ -510,7 +487,7 @@ class Email {
             $atts .= $fileObj->getName().' ';
         }
         $headersTable->addHeader('Attachments', $atts);
-        $this->runAfterSend();
+        $this->invokeAfterSend();
         $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
         $this->getDocument()->getBody()->insert($headersTable, 0);
         
@@ -526,9 +503,8 @@ class Email {
      * Note that if in testing environment, the method will attempt to store
      * the email as HTML web page. Testing environment is set when the constant
      * EMAIL_TESTING is defined and set to true in addition to having the
-     * constant EMAIL_TESTING_PATH is defined.
+     * constant EMAIL_TESTING_PATH defined.
      * 
-     * @since 1.0
      */
     public function send() {
         if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
@@ -542,7 +518,7 @@ class Email {
         }
         $acc = $this->getSMTPAccount();
 
-        $this->runBeforeSend();
+        $this->invokeBeforeSend();
         $server = $this->getSMTPServer();
         
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
@@ -569,7 +545,7 @@ class Email {
             $this->appendAttachments();
             $server->sendCommand(SMTPServer::NL.'.');
             $server->sendCommand('QUIT');
-            $this->runAfterSend();
+            $this->invokeAfterSend();
         } else {
             throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode());
         }
@@ -603,9 +579,8 @@ class Email {
      * then 1 will be used. If the passed value is less than -1, then -1 is 
      * used. Other than that, 0 will be used.
      * 
-     * @since 2.0
      */
-    public function setPriority(int $messagePriority) {
+    public function setPriority(int $messagePriority) : Email {
         if ($messagePriority <= -1) {
             $this->priority = -1;
         } else if ($messagePriority >= 1) {
@@ -613,6 +588,8 @@ class Email {
         } else {
             $this->priority = 0;
         }
+        
+        return $this;
     }
 
     /**
@@ -630,17 +607,21 @@ class Email {
      * 
      * @param string $subject Email subject.
      * 
-     * @since 2.0
      */
-    public function setSubject(string $subject) {
+    public function setSubject(string $subject) : Email {
         $trimmed = $this->trimControlChars($subject);
 
         if (strlen($trimmed) > 0) {
             $this->subject = $trimmed;
             $this->getDocument()->getHeadNode()->setPageTitle($trimmed);
         }
+        
+        return $this;
     }
-    private function addAddressHelper(string $address, string $name, string $type = 'to') : bool {
+    private function addAddressHelper(string $address, string $name = null, string $type = 'to') : bool {
+        if ($name === null || strlen(trim($name)) == 0) {
+            $name = $address;
+        }
         $nameTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $name)));
         $addressTrimmed = $this->trimControlChars(str_replace('<', '', str_replace('>', '', $address)));
 
@@ -661,7 +642,6 @@ class Email {
      * A method that is used to include email attachments.
      *
      * @throws SMTPException
-     * @since 1.3
      */
     private function appendAttachments() {
         $files = $this->getAttachments();

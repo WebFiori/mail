@@ -62,7 +62,8 @@ class EmailMessageTest extends TestCase {
         $this->assertTrue($sm->addTo('  hello@>hello.com  ', ' <Hello2 '));
         $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>',$sm->getToStr());
         $this->assertTrue($sm->addTo(' hello-9@>hello.com ', '  Hel>lo-9'));
-        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?SGVsbG8tOQ==?= <hello-9@hello.com>',$sm->getToStr());
+        $this->assertTrue($sm->addTo('   hello@s.com '));
+        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?SGVsbG8tOQ==?= <hello-9@hello.com>,=?UTF-8?B?aGVsbG9Acy5jb20=?= <hello@s.com>',$sm->getToStr());
     }
     /**
      * @test
@@ -76,7 +77,8 @@ class EmailMessageTest extends TestCase {
         $this->assertTrue($sm->addCC('  hello@>hello.com  ', ' <Hello2 '));
         $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>',$sm->getCCStr());
         $this->assertTrue($sm->addCC(' hello-9@>hello.com  ', ' Hel>lo-9 '));
-        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?SGVsbG8tOQ==?= <hello-9@hello.com>',$sm->getCCStr());
+        $this->assertTrue($sm->addCC(' hello-9@x.com  '));
+        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?SGVsbG8tOQ==?= <hello-9@hello.com>,=?UTF-8?B?aGVsbG8tOUB4LmNvbQ==?= <hello-9@x.com>',$sm->getCCStr());
     }
     /**
      * @test
@@ -84,13 +86,14 @@ class EmailMessageTest extends TestCase {
     public function testAddReciver03() {
         $account = new SMTPAccount($this->acc00);
         $sm = new Email($account);
-        $this->assertTrue($sm->addBCC(' hello@>hello.com   ', '   <Hello',true,true));
+        $this->assertTrue($sm->addBCC(' hello@>hello.com   ', '   <Hello'));
         $this->assertEquals('=?UTF-8?B?SGVsbG8=?= <hello@hello.com>',$sm->getBCCStr());
         $this->assertEquals('Hello',$sm->getBCC()['hello@hello.com']);
-        $this->assertTrue($sm->addBCC('hello@>hello.com  ', '  <Hello2  ',true,true));
+        $this->assertTrue($sm->addBCC('hello@>hello.com  ', '  <Hello2  '));
         $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>',$sm->getBCCStr());
-        $this->assertTrue($sm->addBCC('hello-9@>hello.com   ', '  Hel>lo-9',true,true));
-        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?SGVsbG8tOQ==?= <hello-9@hello.com>',$sm->getBCCStr());
+        $this->assertTrue($sm->addBCC('hello-9@>hello.com   ', '  Hel>lo-9'));
+        $this->assertTrue($sm->addBCC('hello-9@>hello.com   '));
+        $this->assertEquals('=?UTF-8?B?SGVsbG8y?= <hello@hello.com>,=?UTF-8?B?aGVsbG8tOUBoZWxsby5jb20=?= <hello-9@hello.com>',$sm->getBCCStr());
     }
     /**
      * @test
