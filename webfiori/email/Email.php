@@ -127,7 +127,7 @@ class Email {
      * 
      */
     public function addAfterSend(callable $callback, array $extraParams = []) : Email {
-        $this->beforeSendPool[] = [
+        $this->afterSendPool[] = [
             'func' => $callback,
             'params' => array_merge([$this], $extraParams),
             'executed' => false
