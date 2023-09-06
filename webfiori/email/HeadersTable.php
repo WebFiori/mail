@@ -6,7 +6,7 @@ namespace webfiori\email;
 use webfiori\ui\HTMLTable;
 
 /**
- * This table is used to show headers values for specific email. 
+ * This table is used to show headers values for specific email when stored as HTML. 
  *
  * @author Ibrahim
  */
