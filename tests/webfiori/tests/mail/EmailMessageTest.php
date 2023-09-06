@@ -208,4 +208,120 @@ class EmailMessageTest extends TestCase {
         }
        
     }
+    /**
+     * @test
+     */
+    public function testTemplate00() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $message->insertFromTemplate('html-00.html', [
+            'NAME' => 'Ibrahim'
+        ]);
+        $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
+                . '<html>'.SMTPServer::NL
+                . '    <head>'.SMTPServer::NL
+                . '        <title>'.SMTPServer::NL
+                . '            Default'.SMTPServer::NL
+                . '        </title>'.SMTPServer::NL
+                . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
+                . '    </head>'.SMTPServer::NL
+                . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    Hello Mr. Ibrahim'.SMTPServer::NL
+                . ''.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '    </body>'.SMTPServer::NL
+                . '</html>'.SMTPServer::NL, $message->getDocument()->toHTML());
+        
+    }
+    /**
+     * @test
+     */
+    public function testTemplate01() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $message->insertFromTemplate('html-01.html', [
+            'NAME' => 'Ibrahim',
+            'color' => 'blue'
+        ]);
+        
+        $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
+                . '<html>'.SMTPServer::NL
+                . '    <head>'.SMTPServer::NL
+                . '        <title>'.SMTPServer::NL
+                . '            Default'.SMTPServer::NL
+                . '        </title>'.SMTPServer::NL
+                . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
+                . '    </head>'.SMTPServer::NL
+                . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    Hello Mr. Ibrahim'.SMTPServer::NL
+                . ''.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    It is a good day outside. The sky is blue.'.SMTPServer::NL
+                . ''.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '    </body>'.SMTPServer::NL
+                . '</html>'.SMTPServer::NL, $message);
+        
+    }
+    /**
+     * @test
+     */
+    public function testTemplate02() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $message->insertFromTemplate('php-00.php', [
+            'name' => 'Ibrahim'
+        ]);
+        $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
+                . '<html>'.SMTPServer::NL
+                . '    <head>'.SMTPServer::NL
+                . '        <title>'.SMTPServer::NL
+                . '            Default'.SMTPServer::NL
+                . '        </title>'.SMTPServer::NL
+                . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
+                . '    </head>'.SMTPServer::NL
+                . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    Hello Mr. Ibrahim'.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '    </body>'.SMTPServer::NL
+                . '</html>'.SMTPServer::NL, $message->getDocument()->toHTML());
+        
+    }
+    /**
+     * @test
+     */
+    public function testTemplate03() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $message->insertFromTemplate('php-01.php', [
+            'name' => 'Ibrahim',
+            'color' => 'blue'
+        ]);
+        
+        $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
+                . '<html>'.SMTPServer::NL
+                . '    <head>'.SMTPServer::NL
+                . '        <title>'.SMTPServer::NL
+                . '            Default'.SMTPServer::NL
+                . '        </title>'.SMTPServer::NL
+                . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
+                . '    </head>'.SMTPServer::NL
+                . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    Hello Mr. Ibrahim'.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '        <p>'.SMTPServer::NL
+                . '            '.SMTPServer::NL
+                . '    It is a good day outside. The sky is blue.'.SMTPServer::NL
+                . ''.SMTPServer::NL
+                . '        </p>'.SMTPServer::NL
+                . '    </body>'.SMTPServer::NL
+                . '</html>'.SMTPServer::NL, $message.'');
+        
+    }
 }
