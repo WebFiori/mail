@@ -7,7 +7,6 @@ use webfiori\email\exceptions\SMTPException;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
  */
 class SMTPServer {
     const NL = "\r\n";
@@ -18,7 +17,6 @@ class SMTPServer {
      * 
      * @var string
      * 
-     * @since 1.0
      */
     private $lastResponse;
     /**
@@ -26,14 +24,12 @@ class SMTPServer {
      * 
      * @var int 
      * 
-     * @since 1.0
      */
     private $lastResponseCode;
     /**
      *
      * @var array
      * 
-     * @since 1.0
      */
     private $responseLog;
     /**
@@ -53,7 +49,6 @@ class SMTPServer {
      * 
      * @var string 
      * 
-     * @since 1.0
      */
     private $serverHost;
     private $serverOptions;
@@ -62,7 +57,6 @@ class SMTPServer {
      * 
      * @var int 
      * 
-     * @since 1.0
      */
     private $serverPort;
     /**
@@ -80,6 +74,7 @@ class SMTPServer {
         $this->lastResponse = '';
         $this->lastResponseCode = 0;
         $this->isWriting = false;
+        $this->responseLog = [];
     }
 
     /**
@@ -96,7 +91,6 @@ class SMTPServer {
      * will return true. Other than that, the method will return false.
      *
      * @throws SMTPException
-     * @since 1.0
      */
     public function authLogin(string $username, string $pass) : bool {
         if (!$this->isConnected()) {
@@ -125,7 +119,6 @@ class SMTPServer {
      * method will return false.
      *
      * @throws SMTPException
-     * @since 1.0
      */
     public function connect() : bool {
         $retVal = true;
@@ -167,7 +160,6 @@ class SMTPServer {
      * 
      * @return string A string such as 'smtp.example.com'.
      * 
-     * @since 1.0
      */
     public function getHost() : string {
         return $this->serverHost;
@@ -178,7 +170,6 @@ class SMTPServer {
      * @return array The array will have 4 indices, 'command', 'code',
      * 'message' and 'time'.
      * 
-     * @since 1.0.1
      */
     public function getLastLogEntry() : array {
         $entries = $this->getLog();
@@ -201,7 +192,6 @@ class SMTPServer {
      * @return string The last response message after executing some command. Default 
      * value is empty string.
      * 
-     * @since 1.0
      */
     public function getLastResponse() : string {
         return $this->lastResponse;
@@ -213,7 +203,6 @@ class SMTPServer {
      * @return int The last response code that was sent by SMTP server after executing 
      * specific command. Default return value is 0.
      * 
-     * @since 1.0
      */
     public function getLastResponseCode() : int {
         return $this->lastResponseCode;
@@ -223,7 +212,6 @@ class SMTPServer {
      * 
      * @return string The last command which was sent to SMTP server.
      * 
-     * @since 1.0
      */
     public function getLastSentCommand() : string {
         return $this->lastCommand;
@@ -235,7 +223,6 @@ class SMTPServer {
      * @return array The array will hold sub-associative arrays. Each array 
      * will have 4 indices, 'command', 'code', 'message' and 'time'
      * 
-     * @since 1.0
      */
     public function getLog() : array {
         return $this->responseLog;
@@ -245,7 +232,6 @@ class SMTPServer {
      * 
      * @return int Common values are : 25, 465 (SSL) and 586 (TLS).
      * 
-     * @since 1.0
      */
     public function getPort() : int {
         return $this->serverPort;
@@ -259,7 +245,6 @@ class SMTPServer {
      * 
      * @return array An array that holds supported SMTP server options.
      * 
-     * @since 1.0
      */
     public function getServerOptions() : array {
         return $this->serverOptions;
@@ -270,7 +255,6 @@ class SMTPServer {
      * 
      * @return int Timeout time in minutes.
      * 
-     * @since 1.0
      */
     public function getTimeout() : int {
         return $this->responseTimeout;
@@ -280,7 +264,6 @@ class SMTPServer {
      * 
      * @return bool true if the connection is open.
      * 
-     * @since 1.0
      */
     public function isConnected() : bool {
         return is_resource($this->serverCon);
@@ -293,7 +276,6 @@ class SMTPServer {
      * @return bool If the server is in message writing mode, the method 
      * will return true. False otherwise.
      * 
-     * @since 1.0
      */
     public function isInWritingMode() : bool {
         return $this->isWriting;
@@ -303,7 +285,6 @@ class SMTPServer {
      * 
      * @return string
      * 
-     * @since 1.0
      */
     public function read() : string {
         $message = '';
@@ -337,7 +318,6 @@ class SMTPServer {
      * connected to the server.
      *
      * @throws SMTPException
-     * @since 1.0
      */
     public function sendCommand(string $command) : bool {
         $this->lastCommand = explode(' ', $command)[0];
@@ -388,7 +368,6 @@ class SMTPServer {
      * return true. Other than that, the method will return false.
      *
      * @throws SMTPException
-     * @since 1.0
      */
     public function sendHello() : bool {
         if ($this->sendCommand('EHLO '.$this->getHost())) {
@@ -406,7 +385,6 @@ class SMTPServer {
      * only if the connection is not yet established and the given value is grater 
      * than 0.
      * 
-     * @since 1.0
      */
     public function setTimeout(int $val) {
         if ($val >= 1 && !$this->isConnected()) {
@@ -503,7 +481,6 @@ class SMTPServer {
      * @param string $serverResponseMessage The last message which was sent by 
      * the server after executing specific command.
      * 
-     * @since 1.0
      */
     private function setLastResponseCode(string $serverResponseMessage) {
         if (strlen($serverResponseMessage) != 0) {
