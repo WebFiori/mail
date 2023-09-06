@@ -93,7 +93,7 @@ class SMTPAccount {
 
         if (isset($options['pass'])) {
             $this->setPassword($options['pass']);
-        } else if ($options['password']) {
+        } else if (isset($options['password'])) {
             $this->setPassword($options['password']);
         } else {
             $this->setPassword('');
