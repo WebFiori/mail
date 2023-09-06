@@ -19,7 +19,6 @@ class Email {
      * 
      * @see https://tools.ietf.org/html/rfc4021#page-33
      * 
-     * @since 2.0
      */
     const PRIORITIES = [
         -1 => 'non-urgent',
@@ -33,7 +32,6 @@ class Email {
      * 
      * @var array 
      * 
-     * @since 2.0
      */
     private $attachments;
     /**
@@ -42,7 +40,6 @@ class Email {
      * 
      * @var array
      * 
-     * @since 1.0.6
      */
     private $beforeSendPool;
     /**
@@ -50,14 +47,12 @@ class Email {
      * 
      * @var string
      * 
-     * @since 2.0
      */
     private $boundry;
     /**
      *
      * @var HTMLDoc 
      * 
-     * @since 1.0 
      */
     private $document;
     private $inReplyTo;
@@ -68,7 +63,6 @@ class Email {
      * 
      * @var array
      * 
-     * @since 2.0
      */
     private $receiversArr;
     /**
@@ -76,14 +70,12 @@ class Email {
      * 
      * @var SMTPAccount
      * 
-     * @since 1.0
      */
     private $smtpAcc;
     /**
      * 
      * @var SMTPServer|null
      * 
-     * @since 2.0
      */
     private $smtpServer;
     /**
@@ -91,7 +83,6 @@ class Email {
      * 
      * @var string 
      * 
-     * @since 2.0
      */
     private $subject;
     /**
@@ -100,7 +91,6 @@ class Email {
      * @param SMTPAccount $sendAccount The SMTP connection that will be
      * used to send the message.
      * 
-     * @since 1.0
      */
     public function __construct(SMTPAccount $sendAccount = null) {
         $this->log = [];
@@ -132,14 +122,18 @@ class Email {
      * @param array $extraParams An optional array of extra parameters that will
      * be passed to the callback.
      * 
-     * @since 1.0.6
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     * 
      */
-    public function addAfterSend(callable $callback, array $extraParams = []) {
+    public function addAfterSend(callable $callback, array $extraParams = []) : Email {
         $this->beforeSendPool[] = [
             'func' => $callback,
             'params' => array_merge([$this], $extraParams),
             'executed' => false
         ];
+        
+        return $this;
     }
     /**
      * Adds a file as email attachment.
@@ -150,7 +144,6 @@ class Email {
      * @return bool If the file is added, the method will return true. 
      * Other than that, the method will return false.
      * 
-     * @since 2.0
      */
     public function addAttachment($fileObjOrFilePath) : bool {
         $retVal = false;
@@ -183,7 +176,6 @@ class Email {
      * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
-     * @since 2.0
      */
     public function addBCC(string $address, string $name = null): bool {
         if ($name === null) {
@@ -202,14 +194,17 @@ class Email {
      * @param array $extraParams An optional array of extra parameters that will
      * be passed to the callback.
      * 
-     * @since 1.0.6
+     * @return Email The method will return same instance at which the method is
+     * called on.
      */
-    public function addBeforeSend(callable $callback, array $extraParams = []) {
+    public function addBeforeSend(callable $callback, array $extraParams = []) : Email {
         $this->beforeSendPool[] = [
             'func' => $callback,
             'params' => array_merge([$this], $extraParams),
             'executed' => false
         ];
+        
+        return $this;
     }
     /**
      * Adds new receiver address to the list of 'cc' receivers.
@@ -222,7 +217,6 @@ class Email {
      * @return bool If the address is added, the method will return 
      * true. False otherwise.
      * 
-     * @since 2.0
      */
     public function addCC(string $address, string $name = null) : bool {
         return $this->addAddressHelper($address, $name, 'cc');
@@ -522,7 +516,7 @@ class Email {
         
         $name = str_replace(':?\\//*<>|', '', $this->getSubject());
         
-        $file = new File($folderPath.DIRECTORY_SEPARATOR.$this->getSubject().DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
+        $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
     }
