@@ -478,9 +478,12 @@ class Email {
      * message.
      */
     public function invokeAfterSend() {
-        foreach ($this->afterSendPool as $callArr) {
-            call_user_func_array($callArr['func'], $callArr['params']);
-            $callArr['executed'] = true;
+        foreach ($this->afterSendPool as &$callArr) {
+            
+            if (!$callArr['executed']) {
+                call_user_func_array($callArr['func'], $callArr['params']);
+                $callArr['executed'] = true;
+            }
         }
     }
     /**
@@ -488,9 +491,12 @@ class Email {
      * message.
      */
     public function invokeBeforeSend() {
-        foreach ($this->beforeSendPool as $callArr) {
-            call_user_func_array($callArr['func'], $callArr['params']);
-            $callArr['executed'] = true;
+        foreach ($this->beforeSendPool as &$callArr) {
+            
+            if (!$callArr['executed']) {
+                call_user_func_array($callArr['func'], $callArr['params']);
+                $callArr['executed'] = true;
+            }
         }
     }
     /**
@@ -555,17 +561,18 @@ class Email {
      * @param string $langCode a two characters language code such as AR or EN. Default 
      * value is 'EN'.
      * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
      */
-    public function setLang(string $langCode = 'EN') : bool {
+    public function setLang(string $langCode = 'EN') : Email {
         $langU = strtoupper(trim($langCode));
 
         if (strlen($langU) == 2) {
             $this->getDocument()->setLanguage($langU);
 
-            return true;
         }
 
-        return false;
+        return $this;
     }
     /**
      * Sets the priority of the message.
