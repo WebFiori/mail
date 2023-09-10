@@ -380,14 +380,14 @@ class EmailMessageTest extends TestCase {
                 . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
                 . '    </head>'.SMTPServer::NL
                 . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
-                . "        <p>\n"
-                . "            \n"
-                . "    Hello Mr. Ibrahim\n"
+                . "        <p>".SMTPServer::NL
+                . "            ".SMTPServer::NL
+                . "    Hello Mr. Ibrahim".SMTPServer::NL
                 . "        </p>".SMTPServer::NL
-                . "        <p>\n"
-                . "            \n"
-                . "    It is a good day outside. The sky is blue.\n"
-                . "\n"
+                . "        <p>".SMTPServer::NL
+                . "            ".SMTPServer::NL
+                . "    It is a good day outside. The sky is blue.".SMTPServer::NL
+                . "".SMTPServer::NL
                 . '        </p>'.SMTPServer::NL
                 . '    </body>'.SMTPServer::NL
                 . '</html>'.SMTPServer::NL, $message.'');
