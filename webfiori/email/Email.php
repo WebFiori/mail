@@ -1,7 +1,6 @@
 <?php
 namespace webfiori\email;
 
-use Exception;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
@@ -86,9 +85,6 @@ class Email {
      * 
      */
     private $subject;
-    public function __toString() {
-        return $this->getDocument()->toHTML(true);
-    }
     /**
      * Creates new instance of the class.
      * 
@@ -116,6 +112,9 @@ class Email {
             $this->setSMTPAccount($sendAccount);
         }
     }
+    public function __toString() {
+        return $this->getDocument()->toHTML(true);
+    }
     /**
      * Adds a callback to execute after the message is sent.
      * 
@@ -136,7 +135,7 @@ class Email {
             'params' => array_merge([$this], $extraParams),
             'executed' => false
         ];
-        
+
         return $this;
     }
     /**
@@ -203,7 +202,7 @@ class Email {
             'params' => array_merge([$this], $extraParams),
             'executed' => false
         ];
-        
+
         return $this;
     }
     /**
@@ -413,39 +412,6 @@ class Email {
         return $this->getReceiversStrHelper('to');
     }
     /**
-     * Loads a template and insert its content to the body of the message.
-     * 
-     * @param string $path The absolute path to the template. It can be a PHP
-     * file or HTML file.
-     * 
-     * @param array $parameters An optional associative array of parameters to be passed to
-     * the template. The key will be always acting as parameter name. 
-     * In case of HTML, the parameters can be slots enclosed
-     * between two curly braces (e.g '{{NAME}}'). In case of PHP template,
-     * the associative array will be converted to variables that can be used
-     * within the template. 
-     * 
-     * @throws TemplateNotFoundException If no template file was found in provided
-     * path.
-     * 
-     * @return Email The method will return same instance at which the method is
-     * called on.
-     */
-    public function insertFromTemplate(string $path, array $parameters = []) : Email {
-        $content = HTMLNode::fromFile($path, $parameters);
-
-        if (gettype($content) == 'array') {
-            
-            foreach ($content as $node) {
-                $this->insert($node);
-            }
-        } else {
-            $this->insert($content);
-        }
-        
-        return $this;
-    }
-    /**
      * Adds a child node inside the body of a node given its ID.
      *
      * @param HTMLNode|string $node The node that will be inserted. Also,
@@ -476,6 +442,38 @@ class Email {
         return null;
     }
     /**
+     * Loads a template and insert its content to the body of the message.
+     * 
+     * @param string $path The absolute path to the template. It can be a PHP
+     * file or HTML file.
+     * 
+     * @param array $parameters An optional associative array of parameters to be passed to
+     * the template. The key will be always acting as parameter name. 
+     * In case of HTML, the parameters can be slots enclosed
+     * between two curly braces (e.g '{{NAME}}'). In case of PHP template,
+     * the associative array will be converted to variables that can be used
+     * within the template. 
+     * 
+     * @throws TemplateNotFoundException If no template file was found in provided
+     * path.
+     * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function insertFromTemplate(string $path, array $parameters = []) : Email {
+        $content = HTMLNode::fromFile($path, $parameters);
+
+        if (gettype($content) == 'array') {
+            foreach ($content as $node) {
+                $this->insert($node);
+            }
+        } else {
+            $this->insert($content);
+        }
+
+        return $this;
+    }
+    /**
      * Execute all the callbacks which are set to execute after sending the
      * message.
      */
@@ -496,45 +494,6 @@ class Email {
         }
     }
     /**
-     * Saves the email as HTML web page.
-     * 
-     * This method will attempt to create a folder which has same subject
-     * as the email. Inside the folder, it will attempt to create HTML
-     * web page which holds the actual email. The name of the file
-     * will be date and time at which the file was created at.
-     * 
-     * @param string $folderPath The location at which the email will be
-     * stored at.
-     */
-    public function storeEmail(string $folderPath) {
-        
-        $this->invokeBeforeSend();
-        $acc = $this->getSMTPAccount();
-        
-        $headersTable = new HeadersTable();
-        $headersTable->addHeader('Importance', $this->priorityCommandHelper());
-        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
-        $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
-        $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
-        $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
-        $headersTable->addHeader('Date', date('r (T)'));
-        $headersTable->addHeader('Subject', $this->getSubject());
-        $atts = '';
-        foreach ($this->getAttachments() as $fileObj) {
-            $atts .= $fileObj->getName().' ';
-        }
-        $headersTable->addHeader('Attachments', $atts);
-        $this->invokeAfterSend();
-        $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
-        $this->getDocument()->getBody()->insert($headersTable, 0);
-        
-        $name = str_replace(':?\\//*<>|', '', $this->getSubject());
-        
-        $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
-        $file->setRawData($this->getDocument()->toHTML(true).'');
-        $file->write(false, true);
-    }
-    /**
      * Sends the message.
      * 
      * Note that if in testing environment, the method will attempt to store
@@ -550,14 +509,14 @@ class Email {
                 throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
             }
             $this->storeEmail(EMAIL_TESTING_PATH);
-            
+
             return;
         }
         $acc = $this->getSMTPAccount();
 
         $this->invokeBeforeSend();
         $server = $this->getSMTPServer();
-        
+
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
             $this->receiversCommandHelper('to');
@@ -602,10 +561,10 @@ class Email {
 
         if (strlen($langU) == 2) {
             $this->getDocument()->setLanguage($langU);
-            
+
             return true;
         }
-        
+
         return false;
     }
     /**
@@ -628,7 +587,7 @@ class Email {
         } else {
             $this->priority = 0;
         }
-        
+
         return $this;
     }
 
@@ -643,6 +602,7 @@ class Email {
     public function setSMTPAccount(SMTPAccount $account) : Email {
         $this->smtpAcc = $account;
         $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
+
         return $this;
     }
     /**
@@ -661,8 +621,47 @@ class Email {
             $this->subject = $trimmed;
             $this->getDocument()->getHeadNode()->setPageTitle($trimmed);
         }
-        
+
         return $this;
+    }
+    /**
+     * Saves the email as HTML web page.
+     * 
+     * This method will attempt to create a folder which has same subject
+     * as the email. Inside the folder, it will attempt to create HTML
+     * web page which holds the actual email. The name of the file
+     * will be date and time at which the file was created at.
+     * 
+     * @param string $folderPath The location at which the email will be
+     * stored at.
+     */
+    public function storeEmail(string $folderPath) {
+        $this->invokeBeforeSend();
+        $acc = $this->getSMTPAccount();
+
+        $headersTable = new HeadersTable();
+        $headersTable->addHeader('Importance', $this->priorityCommandHelper());
+        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
+        $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
+        $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
+        $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
+        $headersTable->addHeader('Date', date('r (T)'));
+        $headersTable->addHeader('Subject', $this->getSubject());
+        $atts = '';
+
+        foreach ($this->getAttachments() as $fileObj) {
+            $atts .= $fileObj->getName().' ';
+        }
+        $headersTable->addHeader('Attachments', $atts);
+        $this->invokeAfterSend();
+        $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
+        $this->getDocument()->getBody()->insert($headersTable, 0);
+
+        $name = str_replace(':?\\//*<>|', '', $this->getSubject());
+
+        $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
+        $file->setRawData($this->getDocument()->toHTML(true).'');
+        $file->write(false, true);
     }
     private function addAddressHelper(string $address, string $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {

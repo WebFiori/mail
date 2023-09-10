@@ -1,6 +1,4 @@
 <?php
-
-
 namespace webfiori\email;
 
 use webfiori\ui\HTMLTable;
