@@ -17,7 +17,7 @@ class EmailMessageTest extends TestCase {
         'port' => 587,
         'server-address' => 'outlook.office365.com',
         'user' => 'randomxyz@hotmail.com',
-        'pass' => '???',
+        'password' => '???',
         'sender-name' => 'Ibrahim',
         'sender-address' => 'randomxyz@hotmail.com',
         'account-name' => 'no-reply'
@@ -98,6 +98,74 @@ class EmailMessageTest extends TestCase {
     /**
      * @test
      */
+    public function testBeforeSend00() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $sm->addBeforeSend(function (Email $e, string $name) {
+            $e->insert('p')->setID('hello-parag')->text('Hello '.$name);
+        }, ['Ibrahim']);
+        $sm->invokeBeforeSend();
+        $sm->invokeBeforeSend();
+        $this->assertEquals('Hello Ibrahim', $sm->getChildByID('hello-parag')->getChild(0)->getText());
+        $this->assertEquals("<!DOCTYPE html>\r\n"
+                . "<html>\r\n"
+                . "    <head>\r\n"
+                . "        <title>\r\n"
+                . "            Default\r\n"
+                . "        </title>\r\n"
+                . "        <meta name=viewport content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\r\n"
+                . "    </head>\r\n"
+                . "    <body itemscope itemtype=\"http://schema.org/WebPage\">\r\n"
+                . "        <p id=\"hello-parag\">\r\n"
+                . "            Hello Ibrahim\r\n"
+                . "        </p>\r\n"
+                . "    </body>\r\n"
+                . "</html>\r\n", $sm.'');
+    }
+    /**
+     * @test
+     */
+    public function testSetLang00() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $this->assertEquals('', $sm->getLang());
+        $sm->setLang();
+        $this->assertEquals('EN', $sm->getLang());
+        $sm->setLang('aR');
+        $this->assertEquals('AR', $sm->getLang());
+        $sm->setLang('ggf');
+        $this->assertEquals('AR', $sm->getLang());
+    }
+    /**
+     * @test
+     */
+    public function testAfterSend00() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $sm->addAfterSend(function (Email $e, string $name) {
+            $e->insert('p')->setID('hello-parag')->text('Hello '.$name);
+        }, ['Ibrahim']);
+        $sm->invokeAfterSend();
+        $sm->invokeAfterSend();
+        $this->assertEquals('Hello Ibrahim', $sm->getChildByID('hello-parag')->getChild(0)->getText());
+        $this->assertEquals("<!DOCTYPE html>\r\n"
+                . "<html>\r\n"
+                . "    <head>\r\n"
+                . "        <title>\r\n"
+                . "            Default\r\n"
+                . "        </title>\r\n"
+                . "        <meta name=viewport content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\r\n"
+                . "    </head>\r\n"
+                . "    <body itemscope itemtype=\"http://schema.org/WebPage\">\r\n"
+                . "        <p id=\"hello-parag\">\r\n"
+                . "            Hello Ibrahim\r\n"
+                . "        </p>\r\n"
+                . "    </body>\r\n"
+                . "</html>\r\n", $sm.'');
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $account = new SMTPAccount($this->acc00);
         $sm = new Email($account);
@@ -145,6 +213,7 @@ class EmailMessageTest extends TestCase {
             $c->assertFalse($m->addAttachment('NotExtst.txt'));
             $c->assertFalse($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
             $c->assertTrue($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'favicon.png')));
+            $c->assertFalse($m->addAttachment($c));
         }, [$this]);
         $this->assertEquals('<!DOCTYPE html>'.SMTPServer::NL
                 . '<html>'.SMTPServer::NL
@@ -311,14 +380,14 @@ class EmailMessageTest extends TestCase {
                 . '        <meta name=viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'.SMTPServer::NL
                 . '    </head>'.SMTPServer::NL
                 . '    <body itemscope itemtype="http://schema.org/WebPage">'.SMTPServer::NL
-                . '        <p>'.SMTPServer::NL
-                . '            '.SMTPServer::NL
-                . '    Hello Mr. Ibrahim'.SMTPServer::NL
-                . '        </p>'.SMTPServer::NL
-                . '        <p>'.SMTPServer::NL
-                . '            '.SMTPServer::NL
-                . '    It is a good day outside. The sky is blue.'.SMTPServer::NL
-                . ''.SMTPServer::NL
+                . "        <p>".SMTPServer::NL
+                . "            ".SMTPServer::NL
+                . "    Hello Mr. Ibrahim".SMTPServer::NL
+                . "        </p>".SMTPServer::NL
+                . "        <p>".SMTPServer::NL
+                . "            ".SMTPServer::NL
+                . "    It is a good day outside. The sky is blue.".SMTPServer::NL
+                . "".SMTPServer::NL
                 . '        </p>'.SMTPServer::NL
                 . '    </body>'.SMTPServer::NL
                 . '</html>'.SMTPServer::NL, $message.'');
