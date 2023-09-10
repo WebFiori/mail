@@ -3,8 +3,8 @@ A basic library for sending HTML based emails using PHP.
 
 
 <p align="center">
-  <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yml">
-    <img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.1/badge.svg?branch=main">
+  <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yml">
+    <img src="https://github.com/WebFiori/mail/workflows/Build%20PHP%208.2/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/mail">
     <img src="https://codecov.io/gh/WebFiori/mail/branch/main/graph/badge.svg" />
