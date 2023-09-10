@@ -221,6 +221,34 @@ class Email {
         return $this->addAddressHelper($address, $name, 'cc');
     }
     /**
+     * Adds multiple recipients as a one batch.
+     * 
+     * @param array $addresses This can be an indexed array or associative array.
+     * In case of indexed, it can have the email addresses of the recipients.
+     * In case of associative, the keys are email addresses of the recipients
+     * and the values are their names.
+     * 
+     * @param string $recipientsType The type of the recipients. Can only be
+     * one of the following values: 'to', 'cc' or 'bcc'. Default is 'to'.
+     * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function addRecipients(array $addresses, string $recipientsType = 'to') : Email {
+        $typeCorrected = strtolower(trim($recipientsType));
+        
+        if (in_array($typeCorrected, ['to', 'cc', 'bcc'])) {
+            foreach ($addresses as $address => $name) {
+                if (gettype($address) == 'integer') {
+                    $address = $name;
+                }
+                $this->addAddressHelper($address, $name, $typeCorrected);
+            }
+        }
+        
+        return $this;
+    }
+    /**
      * Adds new receiver address to the list of 'to' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
@@ -379,7 +407,7 @@ class Email {
      * Returns the subject of the email.
      * 
      * @return string The subject of the email. Default return value is 
-     * 'Hello From WebFiori Framework'.
+     * 'Hello Email Message'.
      * 
      */
     public function getSubject() : string {

@@ -98,6 +98,45 @@ class EmailMessageTest extends TestCase {
     /**
      * @test
      */
+    public function testAddReciver04() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $sm->addRecipients(['hello@hello.com']);
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>',$sm->getToStr());
+        $this->assertEquals('hello@hello.com',$sm->getTo()['hello@hello.com']);
+        $sm->addRecipients(['hello2@hello.com' => 'Hello2']);
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>,=?UTF-8?B?SGVsbG8y?= <hello2@hello.com>',$sm->getToStr());
+        $this->assertEquals('Hello2',$sm->getTo()['hello2@hello.com']);
+    }
+    /**
+     * @test
+     */
+    public function testAddReciver05() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $sm->addRecipients(['hello@hello.com'], 'cc');
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>',$sm->getCCStr());
+        $this->assertEquals('hello@hello.com',$sm->getCC()['hello@hello.com']);
+        $sm->addRecipients(['hello2@hello.com' => 'Hello2'], 'cc');
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>,=?UTF-8?B?SGVsbG8y?= <hello2@hello.com>',$sm->getCCStr());
+        $this->assertEquals('Hello2',$sm->getCC()['hello2@hello.com']);
+    }
+    /**
+     * @test
+     */
+    public function testAddReciver06() {
+        $account = new SMTPAccount($this->acc00);
+        $sm = new Email($account);
+        $sm->addRecipients(['hello@hello.com'], 'Bcc');
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>',$sm->getBCCStr());
+        $this->assertEquals('hello@hello.com',$sm->getBCC()['hello@hello.com']);
+        $sm->addRecipients(['hello2@hello.com' => 'Hello2'], 'BCc');
+        $this->assertEquals('=?UTF-8?B?aGVsbG9AaGVsbG8uY29t?= <hello@hello.com>,=?UTF-8?B?SGVsbG8y?= <hello2@hello.com>',$sm->getBCCStr());
+        $this->assertEquals('Hello2',$sm->getBCC()['hello2@hello.com']);
+    }
+    /**
+     * @test
+     */
     public function testBeforeSend00() {
         $account = new SMTPAccount($this->acc00);
         $sm = new Email($account);
