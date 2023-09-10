@@ -1,5 +1,8 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# perform LF normalization
+* text eol=crlf
+*.php text eol=crlf
+*.html text eol=crlf
+
 # Files and folders here will be not included when creating package
 /tests export-ignore
 /example export-ignore

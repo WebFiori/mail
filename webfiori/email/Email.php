@@ -1,10 +1,12 @@
 <?php
 namespace webfiori\email;
 
+use Exception;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
 use webfiori\ui\exceptions\InvalidNodeNameException;
+use webfiori\ui\exceptions\TemplateNotFoundException;
 use webfiori\ui\HTMLDoc;
 use webfiori\ui\HTMLNode;
 /**
@@ -84,6 +86,9 @@ class Email {
      * 
      */
     private $subject;
+    public function __toString() {
+        return $this->getDocument()->toHTML(true);
+    }
     /**
      * Creates new instance of the class.
      * 
@@ -407,7 +412,39 @@ class Email {
     public function getToStr() : string {
         return $this->getReceiversStrHelper('to');
     }
+    /**
+     * Loads a template and insert its content to the body of the message.
+     * 
+     * @param string $path The absolute path to the template. It can be a PHP
+     * file or HTML file.
+     * 
+     * @param array $parameters An optional associative array of parameters to be passed to
+     * the template. The key will be always acting as parameter name. 
+     * In case of HTML, the parameters can be slots enclosed
+     * between two curly braces (e.g '{{NAME}}'). In case of PHP template,
+     * the associative array will be converted to variables that can be used
+     * within the template. 
+     * 
+     * @throws TemplateNotFoundException If no template file was found in provided
+     * path.
+     * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function insertFromTemplate(string $path, array $parameters = []) : Email {
+        $content = HTMLNode::fromFile($path, $parameters);
 
+        if (gettype($content) == 'array') {
+            
+            foreach ($content as $node) {
+                $this->insert($node);
+            }
+        } else {
+            $this->insert($content);
+        }
+        
+        return $this;
+    }
     /**
      * Adds a child node inside the body of a node given its ID.
      *
