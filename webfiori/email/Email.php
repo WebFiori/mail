@@ -616,6 +616,9 @@ class Email {
      * then 1 will be used. If the passed value is less than -1, then -1 is 
      * used. Other than that, 0 will be used.
      * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     * 
      */
     public function setPriority(int $messagePriority) : Email {
         if ($messagePriority <= -1) {
@@ -634,15 +637,21 @@ class Email {
      *
      * @param SMTPAccount $account An account that holds connection information.
      *
+     * @return Email The method will return same instance at which the method is
+     * called on.
      */
-    public function setSMTPAccount(SMTPAccount $account) {
+    public function setSMTPAccount(SMTPAccount $account) : Email {
         $this->smtpAcc = $account;
         $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
+        return $this;
     }
     /**
      * Sets the subject of the message.
      * 
      * @param string $subject Email subject.
+     * 
+     * @return Email The method will return same instance at which the method is
+     * called on.
      * 
      */
     public function setSubject(string $subject) : Email {
