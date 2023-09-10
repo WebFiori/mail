@@ -407,7 +407,7 @@ class Email {
      * Returns the subject of the email.
      * 
      * @return string The subject of the email. Default return value is 
-     * 'Hello From WebFiori Framework'.
+     * 'Hello Email Message'.
      * 
      */
     public function getSubject() : string {
