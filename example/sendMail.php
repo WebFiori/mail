@@ -2,7 +2,7 @@
 
 require '../vendor/autoload.php';
 
-use webfiori\email\EmailMessage;
+use webfiori\email\Email;
 use webfiori\email\SMTPAccount;
 
 //First, create new SMTP account that holds SMTP connection information.
@@ -21,7 +21,7 @@ $smtp = new SMTPAccount([
 
 //Second, create your actual email. using the account that was just created to
 //send messages.
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
 
 //Set subject
 $email->setSubject('Hello World From PHP 😀');
