@@ -36,13 +36,18 @@ A basic library for sending HTML based emails using PHP.
 ## In This Page:
 * [Usage](#usage)
   * [Basic Usage](#basic-usage)
-  * [Connecting to SMTP Server](#connecting-to-smtp-server)
-  * [Creating Email Message](#creating-email-message)
-  * [Setting Email Subject](#setting-email-subject)
-  * [Adding a Recipient](#adding-a-recipient)
-  * [Writing Some Text](#writing-some-text)
-  * [Sending The Message](#sending-the-message)
-  * [All Togather](#all-togather)
+    * [Connecting to SMTP Server](#connecting-to-smtp-server)
+    * [Creating Email Message](#creating-email-message)
+    * [Setting Email Subject](#setting-email-subject)
+    * [Adding a Recipient](#adding-a-recipient)
+    * [Writing Some Text](#writing-some-text)
+    * [Sending The Message](#sending-the-message)
+    * [All Togather](#all-togather)
+* [Before Render Callback](#before-render-callback)
+* [After Render Callback](#after-render-callback)
+* [Accessing SMTP Log](#accessing-smtp-log)
+* [Storing Email](#storing-email)
+* [Setup Testing](#setup-testing)
 
 ## Usage
 
@@ -52,7 +57,7 @@ This section describes most basic use case of the library. It shows how to conne
 
 #### Connecting to SMTP Server
 
-Connection information are represented using an instance of the class [`webfiori\email\SMTPAccount`(https://github.com/WebFiori/mail/blob/dev/webfiori/email/SMTPAccount.php).
+Connection information are represented using an instance of the class [`webfiori\email\SMTPAccount`](https://github.com/WebFiori/mail/blob/main/webfiori/email/SMTPAccount.php).
 ``` php
 <?php
 require '../vendor/autoload.php';
@@ -168,3 +173,48 @@ $div->addChild('p', [
 
 $email->send();
 ```
+## Before Render Callback
+## After Render Callback
+## Accessing SMTP Log
+## Storing Email
+
+Since the emails which are constructed using the library are HTML based, they can be stored as HTML web pages. This feature is useful in case the developer would like to test a preview of final constructed email.
+
+To store an email as HTML web page, the method `Email::storeEmail()` can be used as follows:
+
+``` php
+$m = new Email(new SMTPAccount([
+    'port' => 465,
+    'server-address' => 'mail.example.com',
+    'user' => 'test@example.com',
+    'pass' => 'KnvcbxFYCz77',
+    'sender-name' => 'WebFiori',
+    'sender-address' => 'test@example.com',
+    'account-name' => 'no-reply'
+]));
+$m->setSubject('Test Ability to Store Email');
+$m->addTo('ibx@example.com');
+$m->insert('p')->text('Dear,')->setStyle([
+    'font-weight' => 'bold',
+    'font-size' => '15pt'
+]);
+$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
+$m->insert('p')->text('Regards,')->setStyle([
+    'color' => 'green',
+    'font-weight' => 'bold'
+]);
+$m->storeEmail('/path/to/email/file');
+```
+
+The call to the method `Email::storeEmail()` will do the following:
+
+* Render the final email.
+* Create a folder which has same subject as the email inside provided folder.
+* Create HTML file which has the date and time as its name inside the folder.
+
+The final output of the given code will be HTML web page that is similar to following image.
+
+![image](https://github.com/WebFiori/mail/assets/12120015/abe81167-8743-4fd1-ab7a-c16d2bbd1411)
+
+## Setup Testing
+
