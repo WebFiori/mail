@@ -527,6 +527,9 @@ class Email {
             }
         }
     }
+    public function rcptCount() : int {
+        return count($this->getCC()) + count($this->getBCC()) + count($this->getTo());
+    }
     /**
      * Sends the message.
      * 
@@ -550,9 +553,12 @@ class Email {
 
         $this->invokeBeforeSend();
         $server = $this->getSMTPServer();
-
+        if ($this->rcptCount() == 0) {
+            throw new SMTPException('No email recipients.');
+        }
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
+            
             $this->receiversCommandHelper('to');
             $this->receiversCommandHelper('cc');
             $this->receiversCommandHelper('bcc');
