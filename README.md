@@ -43,8 +43,9 @@ A basic library for sending HTML based emails using PHP.
     * [Writing Some Text](#writing-some-text)
     * [Sending The Message](#sending-the-message)
     * [All Togather](#all-togather)
-* [Before Render Callback](#before-render-callback)
-* [After Render Callback](#after-render-callback)
+* [Attachments](#attachments)
+* [Before Send Callback](#before-send-callback)
+* [After Send Callback](#after-send-callback)
 * [Accessing SMTP Log](#accessing-smtp-log)
 * [Storing Email](#storing-email)
 * [Setup Testing](#setup-testing)
@@ -173,9 +174,104 @@ $div->addChild('p', [
 
 $email->send();
 ```
-## Before Render Callback
-## After Render Callback
+## Attachments
+
+Attachements can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
+
+``` php
+use webfiori\email\SMTPAccount;
+use webfiori\email\EmailMessage;
+use webfiori\file\File;
+
+$smtp = new SMTPAccount([
+    'port' => 465,
+    'server-address' => 'mail.example.com',
+    'user' => 'test@example.com',
+    'pass' => 'KnvcbxFYCz77',
+    'sender-name' => 'Ibrahim',
+    'sender-address' => 'test@example.com',
+    'account-name' => 'no-reply'
+]);
+
+$email = new EmailMessage($smtp);
+ 
+$email->addAttachment('Attach00.txt');
+$email->addAttachment(new File('another.txt'));
+```
+
+## Before Send Callback
+
+Suppose that a developer would like to perform a task everytime the method `Email::send()` is called, and that event must be called before connecting to SMTP server. In such case, the developer can use the method `Email::addBeforeSend()`. The method accepts two parameters, first one is a `function` callback and second one is an optional array of parameters to be passed to the callback. 
+
+``` php
+$smtp = new SMTPAccount([
+    'port' => 465,
+    'server-address' => 'mail.example.com',
+    'user' => 'test@example.com',
+    'pass' => 'KnvcbxFYCz77',
+    'sender-name' => 'Ibrahim',
+    'sender-address' => 'test@example.com',
+    'account-name' => 'no-reply'
+]);
+
+$email = new EmailMessage($smtp);
+$email->setSubject('Hello World From PHP 😀');
+$email->addTo('super-megaman-x@outlook.com');
+
+$email->addBeforeSend(function (Email $e) {
+  $e->insert('p')->text('This text is added before sending');
+});
+
+$div = $email->insert('div');
+$div->addChild('p')->text('Hello World Message');
+
+$email->send();
+
+```
+
+## After Send Callback
+
+Suppose that a developer would like to perform a task everytime the method `Email::send()` is called, and that event must be called after sending the email. In such case, the developer can use the method `Email::addAfterSend()`. The method accepts two parameters, first one is a `function` callback and second one is an optional array of parameters to be passed to the callback. 
+
+``` php
+$smtp = new SMTPAccount([
+    'port' => 465,
+    'server-address' => 'mail.example.com',
+    'user' => 'test@example.com',
+    'pass' => 'KnvcbxFYCz77',
+    'sender-name' => 'Ibrahim',
+    'sender-address' => 'test@example.com',
+    'account-name' => 'no-reply'
+]);
+
+$email = new EmailMessage($smtp);
+$email->setSubject('Hello World From PHP 😀');
+$email->addTo('super-megaman-x@outlook.com');
+
+$email->addAfterSend(function (Email $e) {
+ // Do any action like storing the log.
+});
+
+$div = $email->insert('div');
+$div->addChild('p')->text('Hello World Message');
+
+$email->send();
+
+```
+
+
 ## Accessing SMTP Log
+
+One of the features of the library is the logging of SMTP commands that was sent to server. This is useful in case the developer would like to trace the cause of send failure. To access the log events, the method `Email::getLog()` can be used. The method will return an array that holds sub-assiciative arrays. each associative array will have 3 indices, `command`, `response-code` and `response-message`.
+
+``` php
+foreach ($email->getLog() as $logEvent) {
+  echo ' Command: '.$logEvent['command'];
+  echo ' Code: '.$logEvent['response-code'];
+  echo ' Message: '.$logEvent['response-message'];
+}
+```
+
 ## Storing Email
 
 Since the emails which are constructed using the library are HTML based, they can be stored as HTML web pages. This feature is useful in case the developer would like to test a preview of final constructed email.
@@ -218,3 +314,32 @@ The final output of the given code will be HTML web page that is similar to foll
 
 ## Setup Testing
 
+When testing the email, we usually intersted on seeing the final look of the email in addition to knowing who are the recepints of the email. The library provides the developer with the option to store the email as HTML document with all needed information. To configure testing accross all emails, the developer needs to define two constants using the function `define()`. The first one is `EMAIL_TESTING` and the second one is `EMAIL_TESTING_PATH`. The first constant is a boolean that indicates if testing mode is active or not. Second constant is used to tell the library where the HTML documents will be stored.
+
+
+``` php
+define('EMAIL_TESTING', true);
+define('EMAIL_TESTING_PATH', '/path/to/email/file');
+
+$m = new Email(new SMTPAccount([
+    'port' => 465,
+    'server-address' => 'mail.example.com',
+    'user' => 'test@example.com',
+    'pass' => 'KnvcbxFYCz77',
+    'sender-name' => 'WebFiori',
+    'sender-address' => 'test@example.com',
+    'account-name' => 'no-reply'
+]));
+$m->setSubject('Test Ability to Store Email');
+$m->addTo('ibx@example.com');
+$m->insert('p')->text('Dear,')->setStyle([
+    'font-weight' => 'bold',
+    'font-size' => '15pt'
+]);
+$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
+$m->insert('p')->text('Regards,')->setStyle([
+    'color' => 'green',
+    'font-weight' => 'bold'
+]);
+
+```
