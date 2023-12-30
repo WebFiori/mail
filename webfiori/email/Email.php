@@ -583,7 +583,7 @@ class Email {
             $server->sendCommand('QUIT');
             $this->invokeAfterSend();
         } else {
-            throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode());
+            throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode(), $server->getLog());
         }
     }
     /**

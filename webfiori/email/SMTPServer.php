@@ -138,7 +138,8 @@ class SMTPServer {
 
                 if ($this->getLastResponseCode() != 220) {
                     $this->_log('Connect', 0, 'Server did not respond with code 220 during initial connection.');
-                    throw new SMTPException($this->getLastLogEntry()['message']);
+                    $lastLog = $this->getLastLogEntry();
+                    throw new SMTPException($lastLog['message'], $lastLog['code'], $this->getLog());
                 }
 
                 if ($this->sendHello()) {
@@ -325,7 +326,7 @@ class SMTPServer {
         if ($this->lastResponseCode >= 400) {
             throw new SMTPException('Unable to send SMTP commend "'.$command.'" due to '
                     .'error code '.$this->lastResponseCode.' caused by last command. '
-                    .'Error message: "'.$this->lastResponse.'".');
+                    .'Error message: "'.$this->lastResponse.'".', $this->lastResponseCode, $this->getLog());
         }
 
         if ($this->isConnected()) {
