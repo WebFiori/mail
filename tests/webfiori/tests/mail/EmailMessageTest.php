@@ -313,6 +313,7 @@ class EmailMessageTest extends TestCase {
                 'message' => '535 Incorrect authentication data',
                 'time' => date('Y-m-d H:i:s')
             ], $message->getSMTPServer()->getLastLogEntry());
+            $this->assertEquals(7, count($ex->getLog()));
         }
        
     }
