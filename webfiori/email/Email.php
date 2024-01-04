@@ -236,7 +236,7 @@ class Email {
      */
     public function addRecipients(array $addresses, string $recipientsType = 'to') : Email {
         $typeCorrected = strtolower(trim($recipientsType));
-        
+
         if (in_array($typeCorrected, ['to', 'cc', 'bcc'])) {
             foreach ($addresses as $address => $name) {
                 if (gettype($address) == 'integer') {
@@ -245,7 +245,7 @@ class Email {
                 $this->addAddressHelper($address, $name, $typeCorrected);
             }
         }
-        
+
         return $this;
     }
     /**
@@ -507,7 +507,6 @@ class Email {
      */
     public function invokeAfterSend() {
         foreach ($this->afterSendPool as &$callArr) {
-            
             if (!$callArr['executed']) {
                 call_user_func_array($callArr['func'], $callArr['params']);
                 $callArr['executed'] = true;
@@ -520,7 +519,6 @@ class Email {
      */
     public function invokeBeforeSend() {
         foreach ($this->beforeSendPool as &$callArr) {
-            
             if (!$callArr['executed']) {
                 call_user_func_array($callArr['func'], $callArr['params']);
                 $callArr['executed'] = true;
@@ -531,6 +529,16 @@ class Email {
         return count($this->getCC()) + count($this->getBCC()) + count($this->getTo());
     }
     /**
+     * Removes all email addresses of the users who where set to recive the email.
+     */
+    public function removeAllRecipients() {
+        $this->receiversArr = [
+            'cc' => [],
+            'bcc' => [],
+            'to' => []
+        ];
+    }
+    /**
      * Sends the message.
      * 
      * Note that if in testing environment, the method will attempt to store
@@ -538,27 +546,48 @@ class Email {
      * EMAIL_TESTING is defined and set to true in addition to having the
      * constant EMAIL_TESTING_PATH defined.
      * 
+     * Additionally, the email can be sent to specific address by 
+     * defining the constant EMAIL_TESTING_ADDRESS.
+     * 
      */
     public function send() {
+        $this->invokeBeforeSend();
+
         if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
-            //Testing mode. Store email instead of sending.
-            if (!defined('EMAIL_TESTING_PATH') || !File::isDirectory(EMAIL_TESTING_PATH, true)) {
+            $isStore = defined('EMAIL_TESTING_PATH') && File::isDirectory(EMAIL_TESTING_PATH, true);
+            $isSend = defined('EMAIL_TESTING_ADDRESS');
+            $this->setupBeoreTesting();
+
+            if ($isSend) {
+                $this->removeAllRecipients();
+                $this->addTo(EMAIL_TESTING_ADDRESS);
+            }
+
+            if ($isStore && File::isDirectory(EMAIL_TESTING_PATH, true)) {
+                $this->storeEmail(EMAIL_TESTING_PATH);
+            } else {
                 throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
             }
-            $this->storeEmail(EMAIL_TESTING_PATH);
 
-            return;
+            if (!$isSend) {
+                $this->invokeAfterSend();
+
+                return;
+            }
         }
+
         $acc = $this->getSMTPAccount();
 
-        $this->invokeBeforeSend();
+
         $server = $this->getSMTPServer();
+
         if ($this->rcptCount() == 0) {
             throw new SMTPException('No email recipients.');
         }
+
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
-            
+
             $this->receiversCommandHelper('to');
             $this->receiversCommandHelper('cc');
             $this->receiversCommandHelper('bcc');
@@ -603,7 +632,6 @@ class Email {
 
         if (strlen($langU) == 2) {
             $this->getDocument()->setLanguage($langU);
-
         }
 
         return $this;
@@ -677,27 +705,6 @@ class Email {
      * stored at.
      */
     public function storeEmail(string $folderPath) {
-        $this->invokeBeforeSend();
-        $acc = $this->getSMTPAccount();
-
-        $headersTable = new HeadersTable();
-        $headersTable->addHeader('Importance', $this->priorityCommandHelper());
-        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
-        $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
-        $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
-        $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
-        $headersTable->addHeader('Date', date('r (T)'));
-        $headersTable->addHeader('Subject', $this->getSubject());
-        $atts = '';
-
-        foreach ($this->getAttachments() as $fileObj) {
-            $atts .= $fileObj->getName().' ';
-        }
-        $headersTable->addHeader('Attachments', $atts);
-        $this->invokeAfterSend();
-        $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
-        $this->getDocument()->getBody()->insert($headersTable, 0);
-
         $name = str_replace(':?\\//*<>|', '', $this->getSubject());
 
         $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
@@ -789,6 +796,27 @@ class Email {
         foreach ($this->receiversArr[$type] as $address => $name) {
             $server->sendCommand('RCPT TO: <'.$address.'>');
         }
+    }
+    private function setupBeoreTesting() {
+        $acc = $this->getSMTPAccount();
+
+        $headersTable = new HeadersTable();
+        $headersTable->addHeader('Importance', $this->priorityCommandHelper());
+        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
+        $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
+        $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
+        $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
+        $headersTable->addHeader('Date', date('r (T)'));
+        $headersTable->addHeader('Subject', $this->getSubject());
+        $atts = '';
+
+        foreach ($this->getAttachments() as $fileObj) {
+            $atts .= $fileObj->getName().' ';
+        }
+        $headersTable->addHeader('Attachments', $atts);
+        $this->invokeAfterSend();
+        $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
+        $this->getDocument()->getBody()->insert($headersTable, 0);
     }
     /**
      * Removes control characters from the start and end of string in addition 
