@@ -249,6 +249,16 @@ class Email {
         return $this;
     }
     /**
+     * Removes all email addresses of the users who where set to recive the email.
+     */
+    public function removeAllRecipients() {
+        $this->receiversArr = [
+            'cc' => [],
+            'bcc' => [],
+            'to' => []
+        ];
+    }
+    /**
      * Adds new receiver address to the list of 'to' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
@@ -538,20 +548,37 @@ class Email {
      * EMAIL_TESTING is defined and set to true in addition to having the
      * constant EMAIL_TESTING_PATH defined.
      * 
+     * Additionally, the email can be sent to specific address by 
+     * defining the constant EMAIL_TESTING_ADDRESS.
+     * 
      */
     public function send() {
+        $this->invokeBeforeSend();
+        
         if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
-            //Testing mode. Store email instead of sending.
-            if (!defined('EMAIL_TESTING_PATH') || !File::isDirectory(EMAIL_TESTING_PATH, true)) {
+            $isStore = defined('EMAIL_TESTING_PATH') && File::isDirectory(EMAIL_TESTING_PATH, true);
+            $isSend = defined('EMAIL_TESTING_ADDRESS');
+            $this->setupBeoreTesting();
+            
+            if ($isSend) {
+                $this->removeAllRecipients();
+                $this->addTo(EMAIL_TESTING_ADDRESS);
+                
+            }
+            if ($isStore && File::isDirectory(EMAIL_TESTING_PATH, true)) {
+                $this->storeEmail(EMAIL_TESTING_PATH);
+            } else {
                 throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
             }
-            $this->storeEmail(EMAIL_TESTING_PATH);
-
-            return;
+            if (!$isSend) {
+                $this->invokeAfterSend();
+                return;
+            }
         }
+        
         $acc = $this->getSMTPAccount();
 
-        $this->invokeBeforeSend();
+        
         $server = $this->getSMTPServer();
         if ($this->rcptCount() == 0) {
             throw new SMTPException('No email recipients.');
@@ -665,19 +692,7 @@ class Email {
 
         return $this;
     }
-    /**
-     * Saves the email as HTML web page.
-     * 
-     * This method will attempt to create a folder which has same subject
-     * as the email. Inside the folder, it will attempt to create HTML
-     * web page which holds the actual email. The name of the file
-     * will be date and time at which the file was created at.
-     * 
-     * @param string $folderPath The location at which the email will be
-     * stored at.
-     */
-    public function storeEmail(string $folderPath) {
-        $this->invokeBeforeSend();
+    private function setupBeoreTesting() {
         $acc = $this->getSMTPAccount();
 
         $headersTable = new HeadersTable();
@@ -697,6 +712,20 @@ class Email {
         $this->invokeAfterSend();
         $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
         $this->getDocument()->getBody()->insert($headersTable, 0);
+    }
+    /**
+     * Saves the email as HTML web page.
+     * 
+     * This method will attempt to create a folder which has same subject
+     * as the email. Inside the folder, it will attempt to create HTML
+     * web page which holds the actual email. The name of the file
+     * will be date and time at which the file was created at.
+     * 
+     * @param string $folderPath The location at which the email will be
+     * stored at.
+     */
+    public function storeEmail(string $folderPath) {
+        
 
         $name = str_replace(':?\\//*<>|', '', $this->getSubject());
 
