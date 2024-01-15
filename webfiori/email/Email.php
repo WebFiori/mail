@@ -827,6 +827,8 @@ class Email {
      * @return string The string after its control characters trimmed.
      */
     private function trimControlChars(string $str) : string {
-        return trim($str, "\x00..\x20");
+        $trimmed = trim($str, "\x00..\x20");
+        //Removes any invalid line feed.
+        return preg_replace("/(\s*[\r\n]+\s*|\s+)/", ' ', $trimmed);
     }
 }
