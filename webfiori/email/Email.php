@@ -560,7 +560,15 @@ class Email {
 
             if ($isSend) {
                 $this->removeAllRecipients();
-                $this->addTo(EMAIL_TESTING_ADDRESS);
+                $addresees = explode(';', EMAIL_TESTING_ADDRESS);
+
+                foreach ($addresees as $addr) {
+                    $trimmed = trim($addr);
+
+                    if (strlen($trimmed) != 0) {
+                        $this->addTo($trimmed);
+                    }
+                }
             }
 
             if ($isStore && File::isDirectory(EMAIL_TESTING_PATH, true)) {
