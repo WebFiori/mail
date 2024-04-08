@@ -7,3 +7,4 @@ php-cs-fixer-v2.phar
 php-cs-fixer.phar
 clover.xml
 tests/webfiori/tests/mail/Hello Email Message/*
+.php_cs.cache
