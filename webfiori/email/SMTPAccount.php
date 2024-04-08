@@ -77,48 +77,44 @@ class SMTPAccount {
      * 
      */
     public function __construct(array $options = []) {
-        if (isset($options['port'])) {
-            $this->setPort($options['port']);
+        if (isset($options[AccountOption::PORT])) {
+            $this->setPort($options[AccountOption::PORT]);
         } else {
             $this->setPort(465);
         }
 
-        if (isset($options['user'])) {
-            $this->setUsername($options['user']);
-        } else if (isset($options['username'])) {
-            $this->setUsername($options['username']);
+        if (isset($options[AccountOption::USERNAME])) {
+            $this->setUsername($options[AccountOption::USERNAME]);
         } else {
             $this->setUsername('');
         }
 
-        if (isset($options['pass'])) {
-            $this->setPassword($options['pass']);
-        } else if (isset($options['password'])) {
-            $this->setPassword($options['password']);
+        if (isset($options[AccountOption::PASSWORD])) {
+            $this->setPassword($options[AccountOption::PASSWORD]);
         } else {
             $this->setPassword('');
         }
 
-        if (isset($options['server-address'])) {
-            $this->setServerAddress($options['server-address']);
+        if (isset($options[AccountOption::SERVER_ADDRESS])) {
+            $this->setServerAddress($options[AccountOption::SERVER_ADDRESS]);
         } else {
             $this->setServerAddress('');
         }
 
-        if (isset($options['sender-name'])) {
-            $this->setSenderName($options['sender-name']);
+        if (isset($options[AccountOption::SENDER_NAME])) {
+            $this->setSenderName($options[AccountOption::SERVER_ADDRESS]);
         } else {
             $this->setSenderName('');
         }
 
-        if (isset($options['sender-address'])) {
-            $this->setAddress($options['sender-address']);
+        if (isset($options[AccountOption::SERVER_ADDRESS])) {
+            $this->setAddress($options[AccountOption::SERVER_ADDRESS]);
         } else {
             $this->setAddress('');
         }
 
-        if (isset($options['account-name'])) {
-            $this->setAccountName($options['account-name']);
+        if (isset($options[AccountOption::NAME])) {
+            $this->setAccountName($options[AccountOption::NAME]);
         } else {
             $this->setAccountName($this->getSenderName());
         }
