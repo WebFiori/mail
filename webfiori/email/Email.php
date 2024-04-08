@@ -59,6 +59,8 @@ class Email {
     private $inReplyTo;
 
     private $log;
+    private $mode;
+    private $modeConfig;
     private $priority;
     /**
      * 
@@ -110,7 +112,7 @@ class Email {
         $this->document = new HTMLDoc();
         $this->mode = SendMode::PROD;
         $this->modeConfig = [];
-        
+
         if ($sendAccount !== null) {
             $this->setSMTPAccount($sendAccount);
         }
@@ -375,6 +377,41 @@ class Email {
         return $this->getSMTPServer()->getLog();
     }
     /**
+     * Returns the mode at which the message will use when the method 'send' is called.
+     * 
+     * @return string The method will return one of 3 values:
+     * 
+     * <ul>
+     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
+     * sent to its recipients.</li>
+     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
+     * sent to a set of specified addresses by <b>$config</b> with meta-data
+     * of the message. Used to mimic actual process of sending a message.</li>
+     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
+     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
+     * </ul>
+     */
+    public function getMode() : string {
+        return $this->mode;
+    }
+    /**
+     * Returns an array that holds the configuration of send mode of the message.
+     * 
+     * Possible indices of the are:
+     * <ul>
+     * <li><b>store-path</b>: Represents the location at which the
+     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
+     * <li><b>send-addresses</b>: Represents an array that holds
+     * the addresses at which the message will be sent to when the 
+     * mode <b>SendMode::TEST_SEND</b> is used.</li>
+     * </ul>
+     * 
+     * @return array An associative array.
+     */
+    public function getModeConfig() : array {
+        return $this->modeConfig;
+    }
+    /**
      * Returns the priority of the message.
      * 
      * @return int The priority of the message. -1 for non-urgent, 0 
@@ -541,106 +578,30 @@ class Email {
             'to' => []
         ];
     }
-    private $mode;
-    private $modeConfig;
-    /**
-     * Returns the mode at which the message will use when the method 'send' is called.
-     * 
-     * @return string The method will return one of 3 values:
-     * 
-     * <ul>
-     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
-     * sent to its recipients.</li>
-     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
-     * sent to a set of specified addresses by <b>$config</b> with meta-data
-     * of the message. Used to mimic actual process of sending a message.</li>
-     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
-     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
-     * </ul>
-     */
-    public function getMode() : string {
-        return $this->mode;
-    }
-    /**
-     * Sets the mode at which the message will use when the send method is called.
-     * 
-     * @param string $mode This can be one of 3 values:
-     * <ul>
-     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
-     * sent to its recipients.</li>
-     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
-     * sent to a set of specified addresses by <b>$config</b> with meta-data
-     * of the message. Used to mimic actual process of sending a message.</li>
-     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
-     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
-     * </ul>
-     * 
-     * @param array $config An array that holds send option configuration.
-     * The array can have following indices:
-     * <ul>
-     * <li><b>store-path</b>: Represents the location at which the
-     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
-     * <li><b>send-addresses</b>: Represents an array that holds
-     * the addresses at which the message will be sent to when the 
-     * mode <b>SendMode::TEST_SEND</b> is used.</li>
-     * </ul>
-     * 
-     * @return bool If the mode successfully updated, true is returned.
-     * Other than that, false is returned.
-     */
-    public function setMode(string $mode, array $config = []) : bool {
-        $trimmed = strtolower(trim($mode));
-        
-        if ($mode == SendMode::PROD || $mode == SendMode::TEST_SEND || $mode == SendMode::TEST_STORE) {
-            $this->mode = $trimmed;
-            $this->modeConfig = $config;
-            
-            return true;
-        }
-        
-        return false;
-    }
-    /**
-     * Returns an array that holds the configuration of send mode of the message.
-     * 
-     * Possible indices of the are:
-     * <ul>
-     * <li><b>store-path</b>: Represents the location at which the
-     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
-     * <li><b>send-addresses</b>: Represents an array that holds
-     * the addresses at which the message will be sent to when the 
-     * mode <b>SendMode::TEST_SEND</b> is used.</li>
-     * </ul>
-     * 
-     * @return array An associative array.
-     */
-    public function getModeConfig() : array {
-        return $this->modeConfig;
-    }
     /**
      * Sends the message.
      * 
      */
     public function send() {
         $this->invokeBeforeSend();
-        
+
         $sendMode = $this->getMode();
-        
+
         if ($sendMode == SendMode::TEST_STORE) {
             $config = $this->getModeConfig();
-            
+
             if (!isset($config['store-path'])) {
                 throw new FileException('Store path is not set for mode SendMode::TEST_STORE.');
             }
             $path = $config['store-path'];
-            
+
             if (!File::isDirectory($path)) {
                 throw new FileException('Store path does not exist: \''.$path.'\'');
             }
             $this->setupBeoreTesting();
             $this->storeEmail($path);
             $this->invokeAfterSend();
-            
+
             return;
         } else if ($sendMode == SendMode::TEST_SEND) {
             $config = $this->getModeConfig();
@@ -722,6 +683,45 @@ class Email {
         }
 
         return $this;
+    }
+    /**
+     * Sets the mode at which the message will use when the send method is called.
+     * 
+     * @param string $mode This can be one of 3 values:
+     * <ul>
+     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
+     * sent to its recipients.</li>
+     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
+     * sent to a set of specified addresses by <b>$config</b> with meta-data
+     * of the message. Used to mimic actual process of sending a message.</li>
+     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
+     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
+     * </ul>
+     * 
+     * @param array $config An array that holds send option configuration.
+     * The array can have following indices:
+     * <ul>
+     * <li><b>store-path</b>: Represents the location at which the
+     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
+     * <li><b>send-addresses</b>: Represents an array that holds
+     * the addresses at which the message will be sent to when the 
+     * mode <b>SendMode::TEST_SEND</b> is used.</li>
+     * </ul>
+     * 
+     * @return bool If the mode successfully updated, true is returned.
+     * Other than that, false is returned.
+     */
+    public function setMode(string $mode, array $config = []) : bool {
+        $trimmed = strtolower(trim($mode));
+
+        if ($mode == SendMode::PROD || $mode == SendMode::TEST_SEND || $mode == SendMode::TEST_STORE) {
+            $this->mode = $trimmed;
+            $this->modeConfig = $config;
+
+            return true;
+        }
+
+        return false;
     }
     /**
      * Sets the priority of the message.
@@ -872,7 +872,6 @@ class Email {
         try {
             $this->getSMTPServer()->sendCommand('Priority: '.$priorityHeaderVal);
         } catch (TypeError $ex) {
-            
         }
 
         return $importanceHeaderVal;
@@ -897,6 +896,7 @@ class Email {
 
         $headersTable = new HeadersTable();
         $headersTable->addHeader('Importance', $this->priorityCommandHelper());
+
         if ($acc !== null) {
             $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
         } else {

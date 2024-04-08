@@ -1,5 +1,4 @@
 <?php
-
 namespace webfiori\email;
 
 /**
@@ -10,10 +9,9 @@ namespace webfiori\email;
  */
 class SendMode {
     /**
-     * This mode indicates that the message will be stored as HTML in specific
-     * path.
+     * The default mode. Used to send the message to its recipients. 
      */
-    const TEST_STORE = 'store';
+    const PROD = 'send';
     /**
      * This mode indicates that the message will be sent to a set of specified
      * addresses as test including meta-data of the message. Used to mimic actual
@@ -21,7 +19,8 @@ class SendMode {
      */
     const TEST_SEND = 'test_send';
     /**
-     * The default mode. Used to send the message to its recipients. 
+     * This mode indicates that the message will be stored as HTML in specific
+     * path.
      */
-    const PROD = 'send';
+    const TEST_STORE = 'store';
 }
