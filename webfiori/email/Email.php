@@ -1,6 +1,7 @@
 <?php
 namespace webfiori\email;
 
+use TypeError;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
@@ -58,6 +59,8 @@ class Email {
     private $inReplyTo;
 
     private $log;
+    private $mode;
+    private $modeConfig;
     private $priority;
     /**
      * 
@@ -107,6 +110,8 @@ class Email {
         $this->beforeSendPool = [];
         $this->afterSendPool = [];
         $this->document = new HTMLDoc();
+        $this->mode = SendMode::PROD;
+        $this->modeConfig = [];
 
         if ($sendAccount !== null) {
             $this->setSMTPAccount($sendAccount);
@@ -372,6 +377,41 @@ class Email {
         return $this->getSMTPServer()->getLog();
     }
     /**
+     * Returns the mode at which the message will use when the method 'send' is called.
+     * 
+     * @return string The method will return one of 3 values:
+     * 
+     * <ul>
+     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
+     * sent to its recipients.</li>
+     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
+     * sent to a set of specified addresses by <b>$config</b> with meta-data
+     * of the message. Used to mimic actual process of sending a message.</li>
+     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
+     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
+     * </ul>
+     */
+    public function getMode() : string {
+        return $this->mode;
+    }
+    /**
+     * Returns an array that holds the configuration of send mode of the message.
+     * 
+     * Possible indices of the are:
+     * <ul>
+     * <li><b>store-path</b>: Represents the location at which the
+     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
+     * <li><b>send-addresses</b>: Represents an array that holds
+     * the addresses at which the message will be sent to when the 
+     * mode <b>SendMode::TEST_SEND</b> is used.</li>
+     * </ul>
+     * 
+     * @return array An associative array.
+     */
+    public function getModeConfig() : array {
+        return $this->modeConfig;
+    }
+    /**
      * Returns the priority of the message.
      * 
      * @return int The priority of the message. -1 for non-urgent, 0 
@@ -541,52 +581,52 @@ class Email {
     /**
      * Sends the message.
      * 
-     * Note that if in testing environment, the method will attempt to store
-     * the email as HTML web page. Testing environment is set when the constant
-     * EMAIL_TESTING is defined and set to true in addition to having the
-     * constant EMAIL_TESTING_PATH defined.
-     * 
-     * Additionally, the email can be sent to specific address by 
-     * defining the constant EMAIL_TESTING_ADDRESS.
-     * 
      */
     public function send() {
         $this->invokeBeforeSend();
 
-        if (defined('EMAIL_TESTING') && EMAIL_TESTING === true) {
-            $isStore = defined('EMAIL_TESTING_PATH') && File::isDirectory(EMAIL_TESTING_PATH, true);
-            $isSend = defined('EMAIL_TESTING_ADDRESS');
+        $sendMode = $this->getMode();
+
+        if ($sendMode == SendMode::TEST_STORE) {
+            $config = $this->getModeConfig();
+
+            if (!isset($config['store-path'])) {
+                throw new FileException('Store path is not set for mode SendMode::TEST_STORE.');
+            }
+            $path = $config['store-path'];
+
+            if (!File::isDirectory($path)) {
+                throw new FileException('Store path does not exist: \''.$path.'\'');
+            }
             $this->setupBeoreTesting();
+            $this->storeEmail($path);
+            $this->invokeAfterSend();
 
-            if ($isSend) {
-                $this->removeAllRecipients();
-                $addresees = explode(';', EMAIL_TESTING_ADDRESS);
+            return;
+        } else if ($sendMode == SendMode::TEST_SEND) {
+            $config = $this->getModeConfig();
+            
+            if (!isset($config['send-addresses'])) {
+                throw new SMTPException('Recipients are not set for mode SendMode::TEST_SEND.');
+            }
+            $rcpt = $config['send-addresses'];
+            
+            if (gettype($rcpt) == 'string') {
+                $rcpt = explode(';', $rcpt);
+            }
+            $this->setupBeoreTesting();
+            $this->removeAllRecipients();
 
-                foreach ($addresees as $addr) {
-                    $trimmed = trim($addr);
+            foreach ($rcpt as $addr) {
+                $trimmed = trim($addr);
 
-                    if (strlen($trimmed) != 0) {
-                        $this->addTo($trimmed);
-                    }
+                if (strlen($trimmed) != 0) {
+                    $this->addTo($trimmed);
                 }
             }
-
-            if ($isStore && File::isDirectory(EMAIL_TESTING_PATH, true)) {
-                $this->storeEmail(EMAIL_TESTING_PATH);
-            } else {
-                throw new FileException('"EMAIL_TESTING_PATH" is not valid.');
-            }
-
-            if (!$isSend) {
-                $this->invokeAfterSend();
-
-                return;
-            }
-        }
+        } 
 
         $acc = $this->getSMTPAccount();
-
-
         $server = $this->getSMTPServer();
 
         if ($this->rcptCount() == 0) {
@@ -643,6 +683,45 @@ class Email {
         }
 
         return $this;
+    }
+    /**
+     * Sets the mode at which the message will use when the send method is called.
+     * 
+     * @param string $mode This can be one of 3 values:
+     * <ul>
+     * <li><b>SendMode::PROD</b>: This is the default mode. The message will be 
+     * sent to its recipients.</li>
+     * <li><b>SendMode::TEST_SEND</b>: This mode indicates that the message will be
+     * sent to a set of specified addresses by <b>$config</b> with meta-data
+     * of the message. Used to mimic actual process of sending a message.</li>
+     * <li><b>SendMode::TEST_STORE</b>: The message including its meta-data will
+     * be stored as HTML web page in specific path specified by <b>$confing</b>.</li>
+     * </ul>
+     * 
+     * @param array $config An array that holds send option configuration.
+     * The array can have following indices:
+     * <ul>
+     * <li><b>store-path</b>: Represents the location at which the
+     * message will be stored at when the mode <b>SendMode::TEST_STORE</b> is used.</li>
+     * <li><b>send-addresses</b>: Represents an array that holds
+     * the addresses at which the message will be sent to when the 
+     * mode <b>SendMode::TEST_SEND</b> is used.</li>
+     * </ul>
+     * 
+     * @return bool If the mode successfully updated, true is returned.
+     * Other than that, false is returned.
+     */
+    public function setMode(string $mode, array $config = []) : bool {
+        $trimmed = strtolower(trim($mode));
+
+        if ($mode == SendMode::PROD || $mode == SendMode::TEST_SEND || $mode == SendMode::TEST_STORE) {
+            $this->mode = $trimmed;
+            $this->modeConfig = $config;
+
+            return true;
+        }
+
+        return false;
     }
     /**
      * Sets the priority of the message.
@@ -790,7 +869,10 @@ class Email {
         } else {
             $importanceHeaderVal = 'normal';
         }
-        $this->getSMTPServer()->sendCommand('Priority: '.$priorityHeaderVal);
+        try {
+            $this->getSMTPServer()->sendCommand('Priority: '.$priorityHeaderVal);
+        } catch (TypeError $ex) {
+        }
 
         return $importanceHeaderVal;
     }
@@ -806,11 +888,20 @@ class Email {
         }
     }
     private function setupBeoreTesting() {
-        $acc = $this->getSMTPAccount();
+        try {
+            $acc = $this->getSMTPAccount();
+        } catch (TypeError $ex) {
+            $acc = null;
+        }
 
         $headersTable = new HeadersTable();
         $headersTable->addHeader('Importance', $this->priorityCommandHelper());
-        $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
+
+        if ($acc !== null) {
+            $headersTable->addHeader('From', $acc->getSenderName().' <'.$acc->getAddress().'>');
+        } else {
+            $headersTable->addHeader('From', ' <NOT SPECIFIED>');
+        }
         $headersTable->addHeader('To', $this->getReceiversStrHelper('to', false));
         $headersTable->addHeader('CC', $this->getReceiversStrHelper('cc', false));
         $headersTable->addHeader('BCC', $this->getReceiversStrHelper('bcc', false));
