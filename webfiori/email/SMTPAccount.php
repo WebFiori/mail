@@ -102,13 +102,13 @@ class SMTPAccount {
         }
 
         if (isset($options[AccountOption::SENDER_NAME])) {
-            $this->setSenderName($options[AccountOption::SERVER_ADDRESS]);
+            $this->setSenderName($options[AccountOption::SENDER_NAME]);
         } else {
             $this->setSenderName('');
         }
 
-        if (isset($options[AccountOption::SERVER_ADDRESS])) {
-            $this->setAddress($options[AccountOption::SERVER_ADDRESS]);
+        if (isset($options[AccountOption::SENDER_ADDRESS])) {
+            $this->setAddress($options[AccountOption::SENDER_ADDRESS]);
         } else {
             $this->setAddress('');
         }
