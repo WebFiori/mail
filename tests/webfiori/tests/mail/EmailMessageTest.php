@@ -20,7 +20,7 @@ class EmailMessageTest extends TestCase {
         AccountOption::PORT => 587,
         AccountOption::SERVER_ADDRESS => 'outlook.office365.com',
         AccountOption::USERNAME => 'randomxyz@hotmail.com',
-        'password' => '???',
+        AccountOption::PASSWORD => '???',
         AccountOption::SENDER_NAME => 'Ibrahim',
         AccountOption::SENDER_ADDRESS => 'randomxyz@hotmail.com',
         AccountOption::NAME => 'no-reply'
