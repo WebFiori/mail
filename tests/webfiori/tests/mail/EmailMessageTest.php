@@ -4,8 +4,10 @@ namespace webfiori\tests\mail;
 use PHPUnit\Framework\TestCase;
 use webfiori\email\Email;
 use webfiori\email\exceptions\SMTPException;
+use webfiori\email\SendMode;
 use webfiori\email\SMTPAccount;
 use webfiori\email\SMTPServer;
+use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
 /**
  * A test class for testing the class 'webfiori\framework\mail\EmailMessage'.
@@ -433,4 +435,110 @@ class EmailMessageTest extends TestCase {
                 . '</html>'.SMTPServer::NL, $message.'');
         
     }
+    /**
+     * @test
+     */
+    public function testStoreMode00() {
+        $message = new Email();
+        $this->assertEquals(SendMode::PROD, $message->getMode());
+        $this->assertTrue($message->setMode(SendMode::TEST_STORE, [
+            'store-path' => __DIR__
+        ]));
+        $this->assertEquals(SendMode::TEST_STORE, $message->getMode());
+        $message->send();
+        $this->assertTrue(File::isFileExist(__DIR__.DIRECTORY_SEPARATOR.$message->getSubject().DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html'));
+    }
+    /**
+     * @test
+     */
+    public function testStoreMode01() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Store path is not set for mode SendMode::TEST_STORE.');
+        $message = new Email();
+        $this->assertEquals(SendMode::PROD, $message->getMode());
+        $this->assertTrue($message->setMode(SendMode::TEST_STORE, [
+            
+        ]));
+        $this->assertEquals(SendMode::TEST_STORE, $message->getMode());
+        $message->send();
+        $this->assertTrue(File::isFileExist(__DIR__.DIRECTORY_SEPARATOR.$message->getSubject().DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html'));
+    }
+    /**
+     * @test
+     */
+    public function testStoreMode02() {
+        $this->expectException(FileException::class);
+        $this->expectExceptionMessage('Store path does not exist: \''.__DIR__.DIRECTORY_SEPARATOR.'inv_p\'');
+        $message = new Email();
+        $this->assertEquals(SendMode::PROD, $message->getMode());
+        $this->assertTrue($message->setMode(SendMode::TEST_STORE, [
+            'store-path' => __DIR__.DIRECTORY_SEPARATOR.'inv_p'
+        ]));
+        $this->assertEquals(SendMode::TEST_STORE, $message->getMode());
+        $message->send();
+    }
+    /**
+     * @test
+     */
+    public function testSendMode00() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
+            'send-addresses' => [
+                'ibinshikh@outlook.com'
+            ]
+        ]));
+        $this->assertEquals(SendMode::TEST_SEND, $message->getMode());
+        $message->send();
+        $this->assertEquals([
+            'command' => 'QUIT',
+            'code' => 221,
+            'message' => '221 gator4189.hostgator.com closing connection',
+            'time' => date('Y-m-d H:i:s'),
+        ], $message->getSMTPServer()->getLastLogEntry());
+        $this->assertTrue(true);
+    }
+    /**
+     * @test
+     */
+    public function testSendMode01() {
+        $message = new Email(new SMTPAccount($this->acc01));
+        $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
+            'send-addresses' => 'ibinshikh@outlook.com'
+        ]));
+        $this->assertEquals(SendMode::TEST_SEND, $message->getMode());
+        $message->send();
+        $this->assertEquals([
+            'command' => 'QUIT',
+            'code' => 221,
+            'message' => '221 gator4189.hostgator.com closing connection',
+            'time' => date('Y-m-d H:i:s'),
+        ], $message->getSMTPServer()->getLastLogEntry());
+        $this->assertTrue(true);
+    }
+    /**
+     * @test
+     */
+    public function testSendMode02() {
+        $this->expectException(SMTPException::class);
+        $this->expectExceptionMessage('Recipients are not set for mode SendMode::TEST_SEND.');
+        $message = new Email(new SMTPAccount($this->acc01));
+        $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
+            
+        ]));
+        $this->assertEquals(SendMode::TEST_SEND, $message->getMode());
+        $message->send();
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
