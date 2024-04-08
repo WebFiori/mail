@@ -2,6 +2,7 @@
 namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
+use webfiori\email\AccountOption;
 use webfiori\email\SMTPAccount;
 /**
  * A test class for testing the class 'webfiori\framework\mail\SMTPAccount'.
@@ -26,13 +27,13 @@ class SMTPAccountTest extends TestCase {
      */
     public function test01() {
         $acc = new SMTPAccount([
-            'user' => 'my-mail@example.com',
-            'pass' => '123456',
-            'port' => 25,
-            'server-address' => 'mail.examplex.com',
-            'sender-name' => 'Example Sender',
-            'sender-address' => 'no-reply@example.com',
-            'account-name' => 'no-reply'
+            AccountOption::USERNAME => 'my-mail@example.com',
+            AccountOption::PASSWORD => '123456',
+            AccountOption::PORT => 25,
+            AccountOption::SERVER_ADDRESS => 'mail.examplex.com',
+            AccountOption::SENDER_NAME => 'Example Sender',
+            AccountOption::SENDER_ADDRESS => 'no-reply@example.com',
+            AccountOption::NAME => 'no-reply'
         ]);
         $this->assertSame(25,$acc->getPort());
         $this->assertEquals('no-reply@example.com',$acc->getAddress());
@@ -47,13 +48,13 @@ class SMTPAccountTest extends TestCase {
      */
     public function test02() {
         $acc = new SMTPAccount([
-            'username' => 'my-mail@example.com',
-            'password' => '123456',
-            'port' => 25,
-            'server-address' => 'mail.examplex.com',
-            'sender-name' => 'Example Sender',
-            'sender-address' => 'no-reply@example.com',
-            'account-name' => 'no-reply'
+            AccountOption::USERNAME => 'my-mail@example.com',
+            AccountOption::PASSWORD => '123456',
+            AccountOption::PORT => 25,
+            AccountOption::SERVER_ADDRESS => 'mail.examplex.com',
+            AccountOption::SENDER_NAME => 'Example Sender',
+            AccountOption::SENDER_ADDRESS => 'no-reply@example.com',
+            AccountOption::NAME => 'no-reply'
         ]);
         $this->assertSame(25,$acc->getPort());
         $this->assertEquals('no-reply@example.com',$acc->getAddress());

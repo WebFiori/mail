@@ -2,21 +2,22 @@
 
 require '../vendor/autoload.php';
 
+use webfiori\email\AccountOption;
 use webfiori\email\Email;
 use webfiori\email\SMTPAccount;
 
 //First, create new SMTP account that holds SMTP connection information.
 $smtp = new SMTPAccount([
-    'port' => 465,
+    AccountOption::PORT => 465,
     //Replace server address with your mail server address
-    'server-address' => 'mail.example.com',
+    AccountOption::SENDER_ADDRESS => 'mail.example.com',
     //Replace server username with your mail server username
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
     //Replace sender address with your mail server sender address
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::SERVER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]);
 
 //Second, create your actual email. using the account that was just created to

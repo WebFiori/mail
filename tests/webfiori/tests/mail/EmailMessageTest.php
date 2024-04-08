@@ -2,6 +2,7 @@
 namespace webfiori\tests\mail;
 
 use PHPUnit\Framework\TestCase;
+use webfiori\email\AccountOption;
 use webfiori\email\Email;
 use webfiori\email\exceptions\SMTPException;
 use webfiori\email\SendMode;
@@ -16,31 +17,31 @@ use webfiori\file\File;
  */
 class EmailMessageTest extends TestCase {
     private $acc00 = [
-        'port' => 587,
-        'server-address' => 'outlook.office365.com',
-        'user' => 'randomxyz@hotmail.com',
-        'password' => '???',
-        'sender-name' => 'Ibrahim',
-        'sender-address' => 'randomxyz@hotmail.com',
-        'account-name' => 'no-reply'
+        AccountOption::PORT => 587,
+        AccountOption::SERVER_ADDRESS => 'outlook.office365.com',
+        AccountOption::USERNAME => 'randomxyz@hotmail.com',
+        AccountOption::PASSWORD => '???',
+        AccountOption::SENDER_NAME => 'Ibrahim',
+        AccountOption::SENDER_ADDRESS => 'randomxyz@hotmail.com',
+        AccountOption::NAME => 'no-reply'
     ];
     private $acc01 = [
-        'port' => 465,
-        'server-address' => 'mail.programmingacademia.com',
-        'user' => 'test@programmingacademia.com',
-        'pass' => 'KnvcbxFYCz77',
-        'sender-name' => 'Ibrahim',
-        'sender-address' => 'test@programmingacademia.com',
-        'account-name' => 'no-reply2'
+        AccountOption::PORT => 465,
+        AccountOption::SERVER_ADDRESS => 'mail.programmingacademia.com',
+        AccountOption::USERNAME => 'test@programmingacademia.com',
+        AccountOption::PASSWORD => 'KnvcbxFYCz77',
+        AccountOption::SENDER_NAME => 'Ibrahim',
+        AccountOption::SENDER_ADDRESS => 'test@programmingacademia.com',
+        AccountOption::NAME => 'no-reply2'
     ];
     private $acc02 = [
-        'port' => 465,
-        'server-address' => 'mail.programmingacademia.com',
-        'user' => 'test@programmingacademia.com',
-        'pass' => '2233',
-        'sender-name' => 'Ibrahim',
-        'sender-address' => 'test@programmingacademia.com',
-        'account-name' => 'no-reply2'
+        AccountOption::PORT => 465,
+        AccountOption::SERVER_ADDRESS => 'mail.programmingacademia.com',
+        AccountOption::USERNAME => 'test@programmingacademia.com',
+        AccountOption::PASSWORD => '2233',
+        AccountOption::SENDER_NAME => 'Ibrahim',
+        AccountOption::SENDER_ADDRESS => 'test@programmingacademia.com',
+        AccountOption::NAME => 'no-reply2'
     ];
     /**
      * @test
