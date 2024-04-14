@@ -64,24 +64,26 @@ Connection information are represented using an instance of the class [`webfiori
 require '../vendor/autoload.php';
 
 use webfiori\email\SMTPAccount;
+use webfiori\email\AccountOption;
 
 //First, create new SMTP account that holds SMTP connection information.
 $smtp = new SMTPAccount([
-    'port' => 465,
+    AccountOption::PORT => 465,
 
     //Replace server address with your mail server address
-    'server-address' => 'mail.example.com',
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
 
     //Replace server username with your mail server username
-    'user' => 'test@example.com',
+    AccountOption::USERNAME => 'test@example.com',
 
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+
+    AccountOption::SENDER_NAME => 'Ibrahim',
 
     //Replace sender address with your mail server sender address
-    'sender-address' => 'test@example.com',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
 
-    'account-name' => 'no-reply'
+    AccountOption::NAME => 'no-reply'
 ]);
 ```
 
@@ -92,7 +94,7 @@ After having SMTP connection information, an instance of the class [`webfiori\em
 ``` php
 //Second, create your actual email. using the account that was just created to
 //send messages.
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
 ```
 #### Setting Email Subject
 
@@ -144,20 +146,21 @@ When we put all the steps as one, we would have the following:
 ``` php
 require '../vendor/autoload.php';
 
+use webfiori\email\AccountOption;
 use webfiori\email\SMTPAccount;
-use webfiori\email\EmailMessage;
+use webfiori\email\Email;
 
 $smtp = new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]);
 
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
 
 $email->setSubject('Hello World From PHP 😀');
 
@@ -179,18 +182,19 @@ $email->send();
 Attachements can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
 
 ``` php
+use webfiori\email\AccountOption;
 use webfiori\email\SMTPAccount;
-use webfiori\email\EmailMessage;
+use webfiori\email\Email;
 use webfiori\file\File;
 
 $smtp = new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]);
 
 $email = new EmailMessage($smtp);
@@ -205,16 +209,16 @@ Suppose that a developer would like to perform a task everytime the method `Emai
 
 ``` php
 $smtp = new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]);
 
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
 $email->setSubject('Hello World From PHP 😀');
 $email->addTo('super-megaman-x@outlook.com');
 
@@ -235,16 +239,16 @@ Suppose that a developer would like to perform a task everytime the method `Emai
 
 ``` php
 $smtp = new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'Ibrahim',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]);
 
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
 $email->setSubject('Hello World From PHP 😀');
 $email->addTo('super-megaman-x@outlook.com');
 
@@ -280,13 +284,13 @@ To store an email as HTML web page, the method `Email::storeEmail()` can be used
 
 ``` php
 $m = new Email(new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'WebFiori',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]));
 $m->setSubject('Test Ability to Store Email');
 $m->addTo('ibx@example.com');
@@ -314,22 +318,34 @@ The final output of the given code will be HTML web page that is similar to foll
 
 ## Setup Testing
 
-When testing the email, we usually intersted on seeing the final look of the email in addition to knowing who are the recepints of the email. The library provides the developer with the option to store the email as HTML document with all needed information. To configure testing accross all emails, the developer needs to define two constants using the function `define()`. The first one is `EMAIL_TESTING` and the second one is `EMAIL_TESTING_PATH`. The first constant is a boolean that indicates if testing mode is active or not. Second constant is used to tell the library where the HTML documents will be stored.
+When testing the email, we usually intersted on seeing the final look of the email in addition to knowing who are the recepints of the email. The library provides the developer with two options for testing email messages:
+* Storing them as HTML web pages
+* Sending them to specific addresses.
 
+The two testing modes are controlled by the method `Email::setMode()`. The method is used to set the mode at which the email will use when the method `Email::send` is called.
+
+### Storing as Web Pages
+
+In this case, the mode of sending the message should be set to `SendMode::TEST_STORE`. Additionally, the location at which the message will be stored at must be provided.
 
 ``` php
-define('EMAIL_TESTING', true);
-define('EMAIL_TESTING_PATH', '/path/to/email/file');
 
 $m = new Email(new SMTPAccount([
-    'port' => 465,
-    'server-address' => 'mail.example.com',
-    'user' => 'test@example.com',
-    'pass' => 'KnvcbxFYCz77',
-    'sender-name' => 'WebFiori',
-    'sender-address' => 'test@example.com',
-    'account-name' => 'no-reply'
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
 ]));
+
+//Here, set the mode to testing and storing.
+$m->setMode(SendMode::TEST_STORE, [
+    'store-path' => '/path/to/store/message'
+]);
+
+
 $m->setSubject('Test Ability to Store Email');
 $m->addTo('ibx@example.com');
 $m->insert('p')->text('Dear,')->setStyle([
@@ -341,5 +357,48 @@ $m->insert('p')->text('Regards,')->setStyle([
     'color' => 'green',
     'font-weight' => 'bold'
 ]);
+$m->send();
+
+
+```
+
+### Storing as Web Pages
+
+In this case, the mode of sending the message should be set to `SendMode::TEST_SEND`. Additionally, the addresses of the users who will receive the email must be provided.
+
+``` php
+
+$m = new Email(new SMTPAccount([
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'KnvcbxFYCz77',
+    AccountOption::SENDER_NAME => 'Ibrahim',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
+]));
+
+//Here, set the mode to testing and storing.
+$m->setMode(SendMode::TEST_SEND, [
+    'send-addresses' => [
+        'addr1@example.com',
+        'addr2@example.com',
+    ]
+]);
+
+
+$m->setSubject('Test Ability to Store Email');
+$m->addTo('ibx@example.com');
+$m->insert('p')->text('Dear,')->setStyle([
+    'font-weight' => 'bold',
+    'font-size' => '15pt'
+]);
+$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
+$m->insert('p')->text('Regards,')->setStyle([
+    'color' => 'green',
+    'font-weight' => 'bold'
+]);
+$m->send();
+
 
 ```
