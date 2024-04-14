@@ -10,13 +10,13 @@ use webfiori\email\SMTPAccount;
 $smtp = new SMTPAccount([
     AccountOption::PORT => 465,
     //Replace server address with your mail server address
-    AccountOption::SENDER_ADDRESS => 'mail.example.com',
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
     //Replace server username with your mail server username
     AccountOption::USERNAME => 'test@example.com',
     AccountOption::PASSWORD => 'KnvcbxFYCz77',
     AccountOption::SENDER_NAME => 'Ibrahim',
     //Replace sender address with your mail server sender address
-    AccountOption::SERVER_ADDRESS => 'test@example.com',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
     AccountOption::NAME => 'no-reply'
 ]);
 
