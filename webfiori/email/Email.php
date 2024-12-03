@@ -26,6 +26,15 @@ class Email {
         0 => 'normal',
         1 => 'urgent'
     ];
+    private $isSent;
+    /**
+     * Checks if the method Email::send() was called or not.
+     * 
+     * @return bool If it was called, the method will return true. False otherwise.
+     */
+    public function isSent() : bool {
+        return $this->isSent;
+    }
     private $afterSendPool;
     /**
      * An array that contains an objects of type 'File' or 
@@ -109,14 +118,24 @@ class Email {
         $this->inReplyTo = [];
         $this->beforeSendPool = [];
         $this->afterSendPool = [];
+        $this->isSent = false;
         $this->document = new HTMLDoc();
         $this->mode = SendMode::PROD;
         $this->modeConfig = [];
-
+        $this->addBeforeSend(function (Email $email) {
+            $email->isSent = true;
+        }, [$this]);
         if ($sendAccount !== null) {
             $this->setSMTPAccount($sendAccount);
         }
     }
+    /**
+     * Returns a string representation of the email.
+     * 
+     * The method will return HTML code which represent the message.
+     * 
+     * @return string
+     */
     public function __toString() {
         return $this->getDocument()->toHTML(true);
     }
@@ -581,8 +600,13 @@ class Email {
     /**
      * Sends the message.
      * 
+     * @throws SMTPException
      */
     public function send() {
+        
+        if ($this->isSent()) {
+            throw new SMTPException('Message was already sent.');
+        }
         $this->invokeBeforeSend();
 
         $sendMode = $this->getMode();
@@ -630,7 +654,7 @@ class Email {
         $server = $this->getSMTPServer();
 
         if ($this->rcptCount() == 0) {
-            throw new SMTPException('No email recipients.');
+            throw new SMTPException('No message recipients.');
         }
 
         if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
