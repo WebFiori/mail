@@ -323,6 +323,51 @@ class EmailMessageTest extends TestCase {
     /**
      * @test
      */
+    public function testSend03() {
+        $this->expectException(SMTPException::class);
+        $this->expectExceptionMessage('Message was already sent.');
+        $message = new Email(new SMTPAccount($this->acc01));
+
+        $message->setSubject('Test Email From WebFiori');
+        $message->setPriority(1);
+        $message->insert('p')->text('Super test message.');
+        $message->addTo('ibinshikh@outlook.com');
+        $message->addBeforeSend(function (Email $m, TestCase $c) {
+            $c->assertTrue($m->addAttachment(__DIR__.DIRECTORY_SEPARATOR.'Attach00.txt'));
+            $c->assertFalse($m->addAttachment('NotExtst.txt'));
+            $c->assertFalse($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'not-exist.txt')));
+            $c->assertTrue($m->addAttachment(new File(__DIR__.DIRECTORY_SEPARATOR.'favicon.png')));
+            $c->assertFalse($m->addAttachment($c));
+        }, [$this]);
+        
+        $message->addBeforeSend(function (Email $m, TestCase $c) {
+            $c->assertEquals(2, count($m->getAttachments()));
+        }, [$this]); 
+        $message->send();
+        $this->assertEquals([
+            'command' => 'QUIT',
+            'code' => 221,
+            'message' => '221 gator4189.hostgator.com closing connection',
+            'time' => date('Y-m-d H:i:s'),
+        ], $message->getSMTPServer()->getLastLogEntry());
+        $message->send();
+    }
+    /**
+     * @test
+     */
+    public function testSend04() {
+        $this->expectException(SMTPException::class);
+        $this->expectExceptionMessage('No message recipients.');
+        $message = new Email(new SMTPAccount($this->acc01));
+
+        $message->setSubject('Test Email From WebFiori');
+        $message->setPriority(1);
+        $message->insert('p')->text('Super test message.');
+        $message->send();
+    }
+    /**
+     * @test
+     */
     public function testTemplate00() {
         $message = new Email(new SMTPAccount($this->acc01));
         $message->insertFromTemplate('html-00.html', [
@@ -441,6 +486,8 @@ class EmailMessageTest extends TestCase {
      */
     public function testStoreMode00() {
         $message = new Email();
+        $this->assertEquals(SendMode::PROD, $message->getMode());
+        $this->assertFalse($message->setMode('random str'));
         $this->assertEquals(SendMode::PROD, $message->getMode());
         $this->assertTrue($message->setMode(SendMode::TEST_STORE, [
             'store-path' => __DIR__
