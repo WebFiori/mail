@@ -1,6 +1,8 @@
 {
     "name": "webfiori/mailer",
     "description": "Sockets-based library for sending HTML email messages.",
+    "type":"library",
+    "version":"1.2.0",
     "authors": [
         {
             "name": "Ibrahim BinAlshikh",
