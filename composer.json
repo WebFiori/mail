@@ -23,9 +23,9 @@
         "html",
         "sockets"
     ],
-    "autoload": {
-        "psr-4": {
-            "webfiori\\email\\": "webfiori\\email"
+    "autoload" :{
+        "psr-4":{
+            "webfiori\\email\\":"webfiori/email/"
         }
     }
 }

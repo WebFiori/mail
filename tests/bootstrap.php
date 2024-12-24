@@ -18,6 +18,6 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 define('ROOT_DIR', $rootDir);
 define('DS', DIRECTORY_SEPARATOR);
 define('EMAIL_STORAGE_DIR', $rootDir.DS.'mailStorage');
-require_once ROOT_DIR.'/vendor/autoload.php';
+require_once __DIR__.$DS.'..'.$DS.'vendor'.$DS.'autoload.php';
 
 

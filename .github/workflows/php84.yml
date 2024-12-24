@@ -33,10 +33,33 @@ jobs:
         run: sudo service mysql stop
          
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-interaction
+        run: composer install --prefer-dist --no-interaction --no-dev
       
       - name: Execute Tests
-        run: phpunit
+        run: phpunit --configuration tests/phpunit.xml
         
       - name: CodeCov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: SonarCloud Code Scan
+        uses: sonarsource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+ 
+  release_prod:
+    name: Prepare Production Release Branch / Publish Release
+    needs:
+      - "test"
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: php
+          config-file: release-please-config.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+        

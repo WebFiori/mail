@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit stderr="true" colors="true" bootstrap="tests/bootstrap.php">
+<phpunit stderr="true" colors="true" bootstrap="bootstrap.php">
     <php>
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./webfiori/email/Email.php</file>
-            <file>./webfiori/email/SMTPAccount.php</file>
-            <file>./webfiori/email/SMTPServer.php</file>
+            <file>../webfiori/email/Email.php</file>
+            <file>../webfiori/email/SMTPAccount.php</file>
+            <file>../webfiori/email/SMTPServer.php</file>
         </whitelist>
     </filter>
     <logging>
@@ -14,7 +14,7 @@
     </logging>
     <testsuites>
         <testsuite name="Tests">
-            <directory>./tests/webfiori/tests/mail</directory>
+            <directory>./webfiori/tests/mail</directory>
         </testsuite>
     </testsuites>
 </phpunit>
