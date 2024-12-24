@@ -12,7 +12,7 @@ use Throwable;
  */
 class SMTPException extends Exception {
     private $logArr;
-    public function __construct(string $message = "", int $code = 0, array $log = [], Throwable $previous = null) {
+    public function __construct(string $message = "", int $code = 0, array $log = [], Throwable|null $previous = null) {
         parent::__construct($message, $code, $previous);
         $this->logArr = $log;
     }

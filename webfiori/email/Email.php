@@ -104,7 +104,7 @@ class Email {
      * used to send the message.
      * 
      */
-    public function __construct(SMTPAccount $sendAccount = null) {
+    public function __construct(SMTPAccount|null $sendAccount = null) {
         $this->log = [];
         $this->priority = 0;
         $this->subject = 'Hello Email Message';
@@ -204,7 +204,7 @@ class Email {
      * true. False otherwise.
      * 
      */
-    public function addBCC(string $address, string $name = null): bool {
+    public function addBCC(string $address, string|null $name = null): bool {
         return $this->addAddressHelper($address, $name, 'bcc');
     }
     /**
@@ -241,7 +241,7 @@ class Email {
      * true. False otherwise.
      * 
      */
-    public function addCC(string $address, string $name = null) : bool {
+    public function addCC(string $address, string|null $name = null) : bool {
         return $this->addAddressHelper($address, $name, 'cc');
     }
     /**
@@ -284,7 +284,7 @@ class Email {
      * true. False otherwise.
      * 
      */
-    public function addTo(string $address, string $name = null) : bool {
+    public function addTo(string $address, string|null $name = null) : bool {
         return $this->addAddressHelper($address, $name, 'to');
     }
     /**
@@ -513,7 +513,7 @@ class Email {
      *
      * @throws InvalidNodeNameException
      */
-    public function insert($node, string $parentNodeId = null) {
+    public function insert($node, string|null $parentNodeId = null) {
         if (gettype($node) == 'string') {
             $node = new HTMLNode($node);
         }
@@ -822,7 +822,7 @@ class Email {
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
     }
-    private function addAddressHelper(string $address, string $name = null, string $type = 'to') : bool {
+    private function addAddressHelper(string $address, string|null $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {
             $name = $address;
         }
