@@ -939,9 +939,12 @@ class Email {
         $headersTable->addHeader('Attachments', $atts);
         $this->invokeAfterSend();
         $this->getDocument()->getBody()->insert(new HTMLNode('hr'), 0);
-        $this->getDocument()->getBody()->insert(new HTMLNode('p'), 0)->text('----Actual Email Starts After This Line----')->setStyle([
-            'font-weight' => '600'
+        $noticeLine = new HTMLNode('p');
+        $noticeLine->text('----Actual Message Starts After Next Line----')->setStyle([
+            'font-weight' => '600',
+            'color' => '#ef8068'
         ]);
+        $this->getDocument()->getBody()->insert($noticeLine, 0);
         $this->getDocument()->getBody()->insert($headersTable, 0);
     }
     /**
