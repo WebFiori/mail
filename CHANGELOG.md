@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.1](https://github.com/WebFiori/mail/compare/v1.3.0...v1.3.1) (2024-12-24)
+
+
+### Bug Fixes
+
+* Position of Notice ([4fe92a1](https://github.com/WebFiori/mail/commit/4fe92a1cfcaec1adc7d1003ea4c116188603cb04)), closes [#31](https://github.com/WebFiori/mail/issues/31)
+
+
+### Miscellaneous Chores
+
+* Update .gitattributes ([1cf4a0f](https://github.com/WebFiori/mail/commit/1cf4a0f30a2cc6364c540b1c95a3d55f7afb79ce))
+
 ## [1.3.0](https://github.com/WebFiori/mail/compare/v1.2.2...v1.3.0) (2024-12-24)
 
 
