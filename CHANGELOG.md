@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/WebFiori/mail/compare/v1.2.1...v1.2.2) (2024-12-24)
+
+
+### Miscellaneous Chores
+
+* Updated GitAttributes ([70660bc](https://github.com/WebFiori/mail/commit/70660bc0985d2169c8b9b0b172204bb50cef91c7))
+* Updated Release Please Config ([7695559](https://github.com/WebFiori/mail/commit/7695559beda52cdb8ac95ccab50e26b1f2b315bc))
+
 ## [1.2.1](https://github.com/WebFiori/mail/compare/v1.2.0...v1.2.1) (2024-12-03)
 
 
