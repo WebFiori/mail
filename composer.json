@@ -2,7 +2,7 @@
     "name": "webfiori/mailer",
     "description": "Sockets-based library for sending HTML email messages.",
     "type": "library",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "authors": [
         {
             "name": "Ibrahim BinAlshikh",
@@ -23,9 +23,9 @@
         "html",
         "sockets"
     ],
-    "autoload" :{
-        "psr-4":{
-            "webfiori\\email\\":"webfiori/email/"
+    "autoload": {
+        "psr-4": {
+            "webfiori\\email\\": "webfiori/email/"
         }
     }
 }
