@@ -2,9 +2,9 @@
 
 require '../vendor/autoload.php';
 
-use webfiori\email\AccountOption;
-use webfiori\email\Email;
-use webfiori\email\SMTPAccount;
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\Email;
+use WebFiori\Mail\SMTPAccount;
 
 //First, create new SMTP account that holds SMTP connection information.
 $smtp = new SMTPAccount([

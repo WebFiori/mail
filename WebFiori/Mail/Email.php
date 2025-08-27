@@ -1,8 +1,8 @@
 <?php
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 use TypeError;
-use webfiori\email\exceptions\SMTPException;
+use WebFiori\Mail\Exceptions\SMTPException;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
 use webfiori\ui\exceptions\InvalidNodeNameException;

@@ -1,11 +1,11 @@
 <?php
-namespace webfiori\tests\mail;
+namespace WebFiori\Tests\Mail;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\email\AccountOption;
-use webfiori\email\SMTPAccount;
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\SMTPAccount;
 /**
- * A test class for testing the class 'webfiori\framework\mail\SMTPAccount'.
+ * A test class for testing the class 'WebFiori\Mail\SMTPAccount'.
  *
  * @author Ibrahim
  */

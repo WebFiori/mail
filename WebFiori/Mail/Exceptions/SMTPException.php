@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\email\exceptions;
+namespace WebFiori\Mail\Exceptions;
 
 use Exception;
 use Throwable;

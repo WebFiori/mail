@@ -1,17 +1,17 @@
 <?php
-namespace webfiori\tests\mail;
+namespace WebFiori\Tests\Mail;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\email\AccountOption;
-use webfiori\email\Email;
-use webfiori\email\exceptions\SMTPException;
-use webfiori\email\SendMode;
-use webfiori\email\SMTPAccount;
-use webfiori\email\SMTPServer;
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\Email;
+use WebFiori\Mail\exceptions\SMTPException;
+use WebFiori\Mail\SendMode;
+use WebFiori\Mail\SMTPAccount;
+use WebFiori\Mail\SMTPServer;
 use webfiori\file\exceptions\FileException;
 use webfiori\file\File;
 /**
- * A test class for testing the class 'webfiori\framework\mail\EmailMessage'.
+ * A test class for testing the class 'WebFiori\Mail\Email'.
  *
  * @author Ibrahim
  */

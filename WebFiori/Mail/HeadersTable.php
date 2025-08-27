@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 use webfiori\ui\HTMLTable;
 
