@@ -8,8 +8,8 @@ use WebFiori\Mail\exceptions\SMTPException;
 use WebFiori\Mail\SendMode;
 use WebFiori\Mail\SMTPAccount;
 use WebFiori\Mail\SMTPServer;
-use webfiori\file\exceptions\FileException;
-use webfiori\file\File;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\File\File;
 /**
  * A test class for testing the class 'WebFiori\Mail\Email'.
  *
