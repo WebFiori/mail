@@ -59,13 +59,13 @@ This section describes most basic use case of the library. It shows how to conne
 
 #### Connecting to SMTP Server
 
-Connection information are represented using an instance of the class [`webfiori\email\SMTPAccount`](https://github.com/WebFiori/mail/blob/main/webfiori/email/SMTPAccount.php).
+Connection information are represented using an instance of the class [`WebFiori\Mail\SMTPAccount`](https://github.com/WebFiori/mail/blob/main/WebFiori/Mail/SMTPAccount.php).
 ``` php
 <?php
 require '../vendor/autoload.php';
 
-use webfiori\email\SMTPAccount;
-use webfiori\email\AccountOption;
+use WebFiori\Mail\SMTPAccount;
+use WebFiori\Mail\AccountOption;
 
 //First, create new SMTP account that holds SMTP connection information.
 $smtp = new SMTPAccount([
@@ -90,7 +90,7 @@ $smtp = new SMTPAccount([
 
 #### Creating Email Message
 
-After having SMTP connection information, an instance of the class [`webfiori\email\Email`](https://github.com/WebFiori/mail/blob/dev/webfiori/email/Email.php) can be created. The consructor of the class will accept one parameter which is the connection that will be used to connect to SMTP server.
+After having SMTP connection information, an instance of the class [`WebFiori\Mail\Email`](https://github.com/WebFiori/mail/blob/dev/WebFiori/Mail/Email.php) can be created. The consructor of the class will accept one parameter which is the connection that will be used to connect to SMTP server.
 
 ``` php
 //Second, create your actual email. using the account that was just created to
@@ -147,9 +147,9 @@ When we put all the steps as one, we would have the following:
 ``` php
 require '../vendor/autoload.php';
 
-use webfiori\email\AccountOption;
-use webfiori\email\SMTPAccount;
-use webfiori\email\Email;
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\SMTPAccount;
+use WebFiori\Mail\Email;
 
 $smtp = new SMTPAccount([
     AccountOption::PORT => 465,
@@ -183,9 +183,9 @@ $email->send();
 Attachements can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
 
 ``` php
-use webfiori\email\AccountOption;
-use webfiori\email\SMTPAccount;
-use webfiori\email\Email;
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\SMTPAccount;
+use WebFiori\Mail\Email;
 use webfiori\file\File;
 
 $smtp = new SMTPAccount([

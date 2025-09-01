@@ -1,14 +1,14 @@
 <?php
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 use TypeError;
-use webfiori\email\exceptions\SMTPException;
-use webfiori\file\exceptions\FileException;
-use webfiori\file\File;
-use webfiori\ui\exceptions\InvalidNodeNameException;
-use webfiori\ui\exceptions\TemplateNotFoundException;
-use webfiori\ui\HTMLDoc;
-use webfiori\ui\HTMLNode;
+use WebFiori\Mail\Exceptions\SMTPException;
+use WebFiori\File\Exceptions\FileException;
+use WebFiori\File\File;
+use WebFiori\UI\Exceptions\InvalidNodeNameException;
+use WebFiori\UI\Exceptions\TemplateNotFoundException;
+use WebFiori\UI\HTMLDoc;
+use WebFiori\UI\HTMLNode;
 /**
  * A class that can be used to write HTML formatted Email messages.
  *

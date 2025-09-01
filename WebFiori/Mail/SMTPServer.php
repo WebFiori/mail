@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
-use webfiori\email\exceptions\SMTPException;
+use WebFiori\Mail\exceptions\SMTPException;
 /**
  * A class which can be used to connect to SMTP server and execute commands on it.
  *

@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 /**
  * A class that represents SMTP account which is used to connect to SMTP server.

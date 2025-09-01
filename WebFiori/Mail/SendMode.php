@@ -8,7 +8,7 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  *
  */
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 /**
  * Class that holds the constants used to set sending mode of an email message

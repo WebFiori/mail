@@ -8,7 +8,7 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  *
  */
-namespace webfiori\email;
+namespace WebFiori\Mail;
 
 /**
  * A class that holds constants that represents SMTP account options.
