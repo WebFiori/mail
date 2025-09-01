@@ -10,14 +10,14 @@
   <logging/>
   <testsuites>
     <testsuite name="Tests">
-      <directory>./webfiori/tests/mail</directory>
+      <directory>./WebFiori/Tests/Mail</directory>
     </testsuite>
   </testsuites>
   <source>
     <include>
-      <file>../webfiori/email/Email.php</file>
-      <file>../webfiori/email/SMTPAccount.php</file>
-      <file>../webfiori/email/SMTPServer.php</file>
+      <file>../WebFiori/Mail/Email.php</file>
+      <file>../WebFiori/Mail/SMTPAccount.php</file>
+      <file>../WebFiori/Mail/SMTPServer.php</file>
     </include>
   </source>
 </phpunit>
