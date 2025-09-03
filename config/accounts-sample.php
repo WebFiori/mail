@@ -8,6 +8,15 @@ use WebFiori\Mail\AccountOption;
 
 return [
     // Traditional SMTP Authentication
+    'other-smtp-1' => [
+        AccountOption::SERVER_ADDRESS => getenv('OTHER_SMTP_SERVER_1') ?: 'smtp.office365.com',
+        AccountOption::PORT => getenv('OTHER_SMTP_PORT_1') ?: 587,
+        AccountOption::USERNAME => getenv('OTHER_USERNAME_1') ?: 'your-email@outlook.com',
+        AccountOption::PASSWORD => getenv('OTHER_PASSWORD_1') ?: 'your-password',
+        AccountOption::SENDER_ADDRESS => getenv('OTHER_SENDER_ADDRESS_1') ?: 'your-email@outlook.com',
+        AccountOption::SENDER_NAME => getenv('OTHER_SENDER_NAME_1') ?: 'Test Sender',
+        AccountOption::NAME => 'other-test-1'
+    ],
     'outlook' => [
         AccountOption::SERVER_ADDRESS => getenv('OUTLOOK_SMTP_SERVER') ?: 'smtp.office365.com',
         AccountOption::PORT => getenv('OUTLOOK_SMTP_PORT') ?: 587,
