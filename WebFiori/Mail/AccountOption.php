@@ -46,4 +46,20 @@ class AccountOption {
      * An option which is used to set a unique name for the account.
      */
     const NAME = 'account-name';
+    /**
+     * An option which is used to set OAuth2 client ID.
+     */
+    const CLIENT_ID = 'client-id';
+    /**
+     * An option which is used to set OAuth2 client secret.
+     */
+    const CLIENT_SECRET = 'client-secret';
+    /**
+     * An option which is used to set OAuth2 tenant ID.
+     */
+    const TENANT = 'tenant';
+    /**
+     * An option which is used to set OAuth2 redirect URI.
+     */
+    const REDIRECT_URI = 'redirect-uri';
 }
