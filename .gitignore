@@ -9,3 +9,4 @@ clover.xml
 tests/webfiori/tests/mail/Hello Email Message/*
 .php_cs.cache
 *.Identifier
+config/accounts.php
