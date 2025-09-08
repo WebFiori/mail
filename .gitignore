@@ -11,3 +11,5 @@ tests/webfiori/tests/mail/Hello Email Message/*
 *.Identifier
 config/accounts.php
 /tests/.phpunit.cache
+tests/oauth/providers.php
+tests/oauth/tokens/
