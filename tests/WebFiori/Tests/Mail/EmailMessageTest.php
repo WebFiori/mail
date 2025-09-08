@@ -16,6 +16,76 @@ use WebFiori\File\File;
  * @author Ibrahim
  */
 class EmailMessageTest extends TestCase {
+    private static $config = null;
+
+    public static function setUpBeforeClass(): void {
+        self::loadConfig();
+    }
+
+    private static function loadConfig(): void {
+        $configPath = __DIR__ . '/../../../../config/accounts.php';
+        $samplePath = __DIR__ . '/../../../../config/accounts-sample.php';
+
+        if (!file_exists($configPath)) {
+            if (file_exists($samplePath)) {
+                copy($samplePath, $configPath);
+            }
+        }
+
+        if (file_exists($configPath)) {
+            self::$config = require $configPath;
+        }
+    }
+
+    private function isDefaultValue($value): bool {
+        return is_string($value) && (
+            strpos($value, 'your-') === 0 || 
+            strpos($value, 'test-') === 0 || 
+            $value === 'your-password' ||
+            $value === 'your-app-password'
+        );
+    }
+
+    private function skipIfDefault($accountConfig): void {
+        foreach ($accountConfig as $value) {
+            if ($this->isDefaultValue($value)) {
+                $this->markTestSkipped('Using default configuration values');
+            }
+        }
+    }
+
+    public function testSendEmailWithOutlookConfig(): void {
+        if (!self::$config || !isset(self::$config['outlook'])) {
+            $this->markTestSkipped('Outlook configuration not found');
+        }
+
+        $this->skipIfDefault(self::$config['outlook']);
+
+        $account = new SMTPAccount(self::$config['outlook']);
+        $email = new Email($account);
+        $email->setSubject('Test Email - Outlook Config');
+        $email->addTo(self::$config['recipients']['primary']);
+        $email->insert('p')->text('Test email using Outlook configuration');
+
+        $this->assertTrue($email->send());
+    }
+
+    public function testSendEmailWithGmailConfig(): void {
+        if (!self::$config || !isset(self::$config['gmail'])) {
+            $this->markTestSkipped('Gmail configuration not found');
+        }
+
+        $this->skipIfDefault(self::$config['gmail']);
+
+        $account = new SMTPAccount(self::$config['gmail']);
+        $email = new Email($account);
+        $email->setSubject('Test Email - Gmail Config');
+        $email->addTo(self::$config['recipients']['primary']);
+        $email->insert('p')->text('Test email using Gmail configuration');
+
+        $this->assertTrue($email->send());
+    }
+
     private $acc00 = [
         AccountOption::PORT => 587,
         AccountOption::SERVER_ADDRESS => 'outlook.office365.com',
@@ -24,15 +94,6 @@ class EmailMessageTest extends TestCase {
         AccountOption::SENDER_NAME => 'Ibrahim',
         AccountOption::SENDER_ADDRESS => 'randomxyz@hotmail.com',
         AccountOption::NAME => 'no-reply'
-    ];
-    private $acc01 = [
-        AccountOption::PORT => 465,
-        AccountOption::SERVER_ADDRESS => 'mail.programmingacademia.com',
-        AccountOption::USERNAME => 'test@programmingacademia.com',
-        AccountOption::PASSWORD => 'KnvcbxFYCz77',
-        AccountOption::SENDER_NAME => 'Ibrahim',
-        AccountOption::SENDER_ADDRESS => 'test@programmingacademia.com',
-        AccountOption::NAME => 'no-reply2'
     ];
     private $acc02 = [
         AccountOption::PORT => 465,
@@ -239,7 +300,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSend00() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $this->assertEquals([
             'command' => '', 
             'code' => 0, 
@@ -326,7 +387,7 @@ class EmailMessageTest extends TestCase {
     public function testSend03() {
         $this->expectException(SMTPException::class);
         $this->expectExceptionMessage('Message was already sent.');
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
 
         $message->setSubject('Test Email From WebFiori');
         $message->setPriority(1);
@@ -358,7 +419,7 @@ class EmailMessageTest extends TestCase {
     public function testSend04() {
         $this->expectException(SMTPException::class);
         $this->expectExceptionMessage('No message recipients.');
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
 
         $message->setSubject('Test Email From WebFiori');
         $message->setPriority(1);
@@ -369,7 +430,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testTemplate00() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $message->insertFromTemplate('html-00.html', [
             'NAME' => 'Ibrahim'
         ]);
@@ -395,7 +456,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testTemplate01() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $message->insertFromTemplate('html-01.html', [
             'NAME' => 'Ibrahim',
             'color' => 'blue'
@@ -428,7 +489,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testTemplate02() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $message->insertFromTemplate('php-00.php', [
             'name' => 'Ibrahim'
         ]);
@@ -453,7 +514,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testTemplate03() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $message->insertFromTemplate('php-01.php', [
             'name' => 'Ibrahim',
             'color' => 'blue'
@@ -529,7 +590,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSendMode00() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
             'send-addresses' => [
                 'ibinshikh@outlook.com'
@@ -549,7 +610,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSendMode01() {
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
             'send-addresses' => 'ibinshikh@outlook.com'
         ]));
@@ -569,7 +630,7 @@ class EmailMessageTest extends TestCase {
     public function testSendMode02() {
         $this->expectException(SMTPException::class);
         $this->expectExceptionMessage('Recipients are not set for mode SendMode::TEST_SEND.');
-        $message = new Email(new SMTPAccount($this->acc01));
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $this->assertTrue($message->setMode(SendMode::TEST_SEND, [
             
         ]));
