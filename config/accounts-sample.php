@@ -9,55 +9,51 @@ use WebFiori\Mail\AccountOption;
 return [
     // Traditional SMTP Authentication
     'other-smtp-1' => [
-        AccountOption::SERVER_ADDRESS => getenv('OTHER_SMTP_SERVER_1') ?: 'smtp.office365.com',
-        AccountOption::PORT => getenv('OTHER_SMTP_PORT_1') ?: 587,
-        AccountOption::USERNAME => getenv('OTHER_USERNAME_1') ?: 'your-email@outlook.com',
+        AccountOption::SERVER_ADDRESS => 'mail.programmingacademia.com',
+        AccountOption::PORT => 587,
+        AccountOption::USERNAME => getenv('OTHER_USERNAME_1') ?: 'test@programmingacademia.com',
         AccountOption::PASSWORD => getenv('OTHER_PASSWORD_1') ?: 'your-password',
-        AccountOption::SENDER_ADDRESS => getenv('OTHER_SENDER_ADDRESS_1') ?: 'your-email@outlook.com',
-        AccountOption::SENDER_NAME => getenv('OTHER_SENDER_NAME_1') ?: 'Test Sender',
+        AccountOption::SENDER_ADDRESS => 'programmingacademia.com',
+        AccountOption::SENDER_NAME => 'Test Sender 1',
         AccountOption::NAME => 'other-test-1'
     ],
-    'outlook' => [
-        AccountOption::SERVER_ADDRESS => getenv('OUTLOOK_SMTP_SERVER') ?: 'smtp.office365.com',
-        AccountOption::PORT => getenv('OUTLOOK_SMTP_PORT') ?: 587,
-        AccountOption::USERNAME => getenv('OUTLOOK_USERNAME') ?: 'your-email@outlook.com',
-        AccountOption::PASSWORD => getenv('OUTLOOK_PASSWORD') ?: 'your-password',
-        AccountOption::SENDER_ADDRESS => getenv('OUTLOOK_SENDER_ADDRESS') ?: 'your-email@outlook.com',
-        AccountOption::SENDER_NAME => getenv('OUTLOOK_SENDER_NAME') ?: 'Test Sender',
-        AccountOption::NAME => 'outlook-test'
-    ],
-
     'gmail' => [
-        AccountOption::SERVER_ADDRESS => getenv('GMAIL_SMTP_SERVER') ?: 'smtp.gmail.com',
-        AccountOption::PORT => getenv('GMAIL_SMTP_PORT') ?: 587,
+        AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
+        AccountOption::PORT => 587,
         AccountOption::USERNAME => getenv('GMAIL_USERNAME') ?: 'your-email@gmail.com',
         AccountOption::PASSWORD => getenv('GMAIL_PASSWORD') ?: 'your-app-password',
-        AccountOption::SENDER_ADDRESS => getenv('GMAIL_SENDER_ADDRESS') ?: 'your-email@gmail.com',
-        AccountOption::SENDER_NAME => getenv('GMAIL_SENDER_NAME') ?: 'Test Sender',
+        AccountOption::SENDER_ADDRESS => getenv('GMAIL_USERNAME') ?: 'your-email@gmail.com',
+        AccountOption::SENDER_NAME => 'Test Sender 3',
         AccountOption::NAME => 'gmail-test'
     ],
 
     // OAuth2 Configuration
     'oauth' => [
         'microsoft' => [
-            AccountOption::CLIENT_ID => getenv('MICROSOFT_CLIENT_ID') ?: 'your-azure-client-id',
-            AccountOption::CLIENT_SECRET => getenv('MICROSOFT_CLIENT_SECRET') ?: 'your-azure-client-secret',
-            AccountOption::REDIRECT_URI => getenv('MICROSOFT_REDIRECT_URI') ?: 'http://localhost:8000/callback',
-            AccountOption::TENANT => getenv('MICROSOFT_TENANT') ?: 'common',
-            AccountOption::USERNAME => getenv('MICROSOFT_USERNAME') ?: 'your-email@outlook.com'
+            AccountOption::SERVER_ADDRESS => 'smtp.office365.com',
+            AccountOption::PORT => 587,
+            AccountOption::USERNAME => getenv('OUTLOOK_USERNAME') ?: 'your-email@outlook.com',
+            AccountOption::SENDER_ADDRESS => getenv('OUTLOOK_USERNAME') ?: 'your-email@outlook.com',
+            AccountOption::SENDER_NAME => 'Test Sender 4',
+            AccountOption::NAME => 'outlook-oauth-test',
+            AccountOption::ACCESS_TOKEN => getenv('OUTLOOK_TOKEN') ?: 'your-access-token',
         ],
         
         'google' => [
-            AccountOption::CLIENT_ID => getenv('GOOGLE_CLIENT_ID') ?: 'your-google-client-id',
-            AccountOption::CLIENT_SECRET => getenv('GOOGLE_CLIENT_SECRET') ?: 'your-google-client-secret',
-            AccountOption::REDIRECT_URI => getenv('GOOGLE_REDIRECT_URI') ?: 'http://localhost:8000/callback',
-            AccountOption::USERNAME => getenv('GOOGLE_USERNAME') ?: 'your-email@gmail.com'
+            AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
+            AccountOption::PORT => 587,
+            AccountOption::USERNAME => getenv('GMAIL_USERNAME') ?: 'your-email@gmail.com',
+            AccountOption::SENDER_ADDRESS => getenv('GMAIL_USERNAME') ?: 'your-email@gmail.com',
+            AccountOption::SENDER_NAME => 'Test Sender 5',
+            AccountOption::NAME => 'gmail-oauth-test',
+            AccountOption::ACCESS_TOKEN => getenv('GMAIL_TOKEN') ?: 'your-access-token',
         ]
     ],
 
     // Test Recipients
     'recipients' => [
-        'primary' => getenv('TEST_RECIPIENT_PRIMARY') ?: 'test-recipient@example.com',
-        'secondary' => getenv('TEST_RECIPIENT_SECONDARY') ?: 'another-recipient@example.com'
+        'to' => getenv('TEST_RECIPIENT_TO') ?: 'test-recipient@example.com',
+        'cc' => getenv('TEST_RECIPIENT_CC') ?: 'cc-recipient@example.com',
+        'bcc' => getenv('TEST_RECIPIENT_BCC') ?: 'bcc-recipient@example.com'
     ]
 ];
