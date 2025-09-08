@@ -657,7 +657,7 @@ class Email {
             throw new SMTPException('No message recipients.');
         }
 
-        if ($server->authLogin($acc->getUsername(), $acc->getPassword())) {
+        if ($this->authenticate($server, $acc)) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
 
             $this->receiversCommandHelper('to');
@@ -822,6 +822,24 @@ class Email {
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
     }
+    /**
+     * Authenticate with SMTP server using appropriate method.
+     *
+     * @param SMTPServer $server SMTP server instance.
+     * @param SMTPAccount $account SMTP account instance.
+     *
+     * @return bool True if authentication successful, false otherwise.
+     */
+    private function authenticate(SMTPServer $server, SMTPAccount $account): bool {
+        $accessToken = $account->getAccessToken();
+
+        if ($accessToken !== null) {
+            
+            return $server->authOAuth($account->getUsername(), $accessToken);
+        }
+        
+        return $server->authLogin($account->getUsername(), $account->getPassword());
+    }    
     private function addAddressHelper(string $address, string|null $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {
             $name = $address;

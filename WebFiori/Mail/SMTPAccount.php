@@ -17,6 +17,12 @@ class SMTPAccount {
      */
     private $accName; 
     /**
+     * OAuth access token for authentication.
+     * 
+     * @var string|null
+     */
+    private $accessToken;
+    /**    /**
      * Email address.
      * 
      * @var string 
@@ -72,6 +78,7 @@ class SMTPAccount {
      * <li><b>sender-address</b>: The address that will appear when the 
      * message is sent. Usually, it is the same as the username.</li>
      * <li><b>account-name</b>: A unique name for the account. Used when creating 
+     * <li><b>access-token</b>: OAuth access token for authentication.</li>
      * new email message. If not provided, 'sender-name' is used.</li>
      * </ul>
      * 
@@ -118,6 +125,18 @@ class SMTPAccount {
         } else {
             $this->setAccountName($this->getSenderName());
         }
+
+        if (isset($options[AccountOption::ACCESS_TOKEN])) {
+            $this->setAccessToken($options[AccountOption::ACCESS_TOKEN]);
+        }
+    }
+    /**
+     * Returns the OAuth access token.
+     * 
+     * @return string|null The OAuth access token or null if not set.
+     */
+    public function getAccessToken(): ?string {
+        return $this->accessToken;
     }
     /**
      * Returns the name of the account.
@@ -132,21 +151,17 @@ class SMTPAccount {
         return $this->accName;
     }
     /**
-     * Returns the email address.
+     * Returns the address of the sender.
      * 
-     * @return string The email address which will be used in the header 
-     * 'FROM' when sending an email. Default is empty string.
-     * 
+     * @return string The address of the sender.
      */
     public function getAddress() : string {
         return $this->address;
     }
     /**
-     * Returns the password of the account that will be used to access SMTP server.
+     * Returns the password of the email account.
      * 
-     * @return string The password of the user account that is used to access email server. 
-     * default is empty string.
-     * 
+     * @return string The password of the email account.
      */
     public function getPassword() : string {
         return $this->password;
@@ -154,107 +169,95 @@ class SMTPAccount {
     /**
      * Returns SMTP server port number.
      * 
-     * @return int Default is 465.
-     * 
+     * @return int SMTP server port number. The default value is 465.
      */
     public function getPort() : int {
         return $this->port;
     }
     /**
-     * Returns the name of sender that will be used in the 'FROM' header.
+     * Returns the name of the sender.
      * 
-     * @return string The name of the email sender. Usually this is similar to 
-     * email address but can also be a name.
-     * 
+     * @return string The name of the sender.
      */
     public function getSenderName() : string {
         return $this->name;
     }
     /**
-     * Returns SMTP server address.
+     * Returns the address of SMTP server.
      * 
-     * @return string The address of the SMTP server (such as 'mail.example.com'). 
-     * 
+     * @return string The address of SMTP server.
      */
     public function getServerAddress() : string {
         return $this->emailServerAddress;
     }
     /**
-     * Returns the username that is used to access SMTP server.
+     * Returns the username of the email account.
      * 
-     * @return string The username that is used to access email server. Default 
-     * is empty string.
-     * 
+     * @return string The username of the email account.
      */
     public function getUsername() : string {
         return $this->userName;
     }
     /**
+     * Sets the OAuth access token.
+     * 
+     * @param string|null $token The OAuth access token or null to clear it.
+     */
+    public function setAccessToken(?string $token): void {
+        $this->accessToken = $token;
+    }
+    /**
      * Sets the name of the account.
      * 
-     * The name of the account is used by the class 'EmailMessage' when creating 
-     * new instance of the class. Also, the name is used when storing the account.
-     * 
      * @param string $name The name of the account.
-     * 
      */
     public function setAccountName(string $name) {
         $this->accName = $name;
     }
     /**
-     * Sets the email address.
+     * Sets the address of the sender.
      * 
-     * @param string $address An email address.
-     * 
+     * @param string $address The address of the sender.
      */
     public function setAddress(string $address) {
         $this->address = trim($address);
     }
     /**
-     * Sets the password of the user account that is used to access email server.
+     * Sets the password of the email account.
      * 
-     * @param string $pass The password of the user account that is used to access email server.
-     * 
+     * @param string $pass The password of the email account.
      */
     public function setPassword(string $pass) {
         $this->password = $pass;
     }
     /**
-     * Sets port number of SMTP server.
+     * Sets SMTP server port number.
      * 
-     * @param int $port The port number of email server. Common ports are 25, 465
-     * and 586.
-     * 
+     * @param int $port SMTP server port number.
      */
     public function setPort(int $port) {
         $this->port = $port;
     }
     /**
-     * Sets the name of the email account.
+     * Sets the name of the sender.
      * 
-     * @param string $name The name of the account (such as 'Programming Team'). 
-     * The name is used when sending an email message using the given SMTP account. 
-     * The name will be used in the header 
-     * 'FROM' when sending an email.
-     * 
+     * @param string $name The name of the sender.
      */
     public function setSenderName(string $name) {
         $this->name = trim($name);
     }
     /**
-     * Sets the address of the email server.
+     * Sets the address of SMTP server.
      * 
-     * @param string $addr The address of the email server (such as 'mail.example.com').
-     * 
+     * @param string $addr The address of SMTP server.
      */
     public function setServerAddress(string $addr) {
         $this->emailServerAddress = trim($addr);
     }
     /**
-     * Sets the username that is used to access email server.
+     * Sets the username of the email account.
      * 
-     * @param string $u The username that is used to access email server.
-     * 
+     * @param string $u The username of the email account.
      */
     public function setUsername(string $u) {
         $this->userName = trim($u);
