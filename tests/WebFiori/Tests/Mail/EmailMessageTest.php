@@ -23,8 +23,8 @@ class EmailMessageTest extends TestCase {
     }
 
     private static function loadConfig(): void {
-        $configPath = __DIR__ . '/../../config/accounts.php';
-        $samplePath = __DIR__ . '/../../config/accounts-sample.php';
+        $configPath = __DIR__ . '/../../../config/accounts.php';
+        $samplePath = __DIR__ . '/../../../config/accounts-sample.php';
 
         if (!file_exists($configPath)) {
             if (file_exists($samplePath)) {
@@ -33,14 +33,10 @@ class EmailMessageTest extends TestCase {
         }
 
         if (file_exists($configPath)) {
-            try {
-                self::$config = require $configPath;
-            } catch (Throwable $e) {
-                // Config loading failed, use default config
-                self::$config = self::getDefaultConfig();
-            }
+             self::$config = require $configPath;
+            
         } else {
-            self::$config = self::getDefaultConfig();
+            die('Unable to load configuration file: '.$configPath);
         }
     }
 
