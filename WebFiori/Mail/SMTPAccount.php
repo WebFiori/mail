@@ -10,18 +10,18 @@ namespace WebFiori\Mail;
  */
 class SMTPAccount {
     /**
-     * The name of SMTP account.
-     * 
-     * @var string 
-     * 
-     */
-    private $accName; 
-    /**
      * OAuth access token for authentication.
      * 
      * @var string|null
      */
     private $accessToken;
+    /**
+     * The name of SMTP account.
+     * 
+     * @var string 
+     * 
+     */
+    private $accName;
     /**    /**
      * Email address.
      * 

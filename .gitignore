@@ -13,3 +13,4 @@ config/accounts.php
 /tests/.phpunit.cache
 tests/oauth/providers.php
 tests/oauth/tokens/
+.php-cs-fixer.cache

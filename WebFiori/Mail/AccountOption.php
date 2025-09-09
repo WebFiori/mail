@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -17,38 +18,37 @@ namespace WebFiori\Mail;
  */
 class AccountOption {
     /**
-     * An option which is used to set the address of SMTP server.
+     * An option which is used to set OAuth access token.
      */
-    const SERVER_ADDRESS = 'server-address';
+    const ACCESS_TOKEN = 'access-token';
     /**
-     * An option which is used to set SMTP server port.
+     * An option which is used to set a unique name for the account.
      */
-    const PORT = 'port';
-    /**
-     * An option which is used to set the username at which it is used to log in to SMTP server.
-     */
-    const USERNAME = 'user';
+    const NAME = 'account-name';
     /**
      * An option which is used to set the password of the account.
      */
     const PASSWORD = 'pass';
     /**
-     * An option which is used to set the name of the sender that will appear when the 
-     * message is sent.
+     * An option which is used to set SMTP server port.
      */
-    const SENDER_NAME = 'sender-name';
+    const PORT = 'port';
     /**
      * An option which is used to set the address that will appear when the 
      * message is sent. Usually, it is the same as the username.
      */
     const SENDER_ADDRESS = 'sender-address';
     /**
-     * An option which is used to set a unique name for the account.
+     * An option which is used to set the name of the sender that will appear when the 
+     * message is sent.
      */
-    const NAME = 'account-name';
-
+    const SENDER_NAME = 'sender-name';
     /**
-     * An option which is used to set OAuth access token.
+     * An option which is used to set the address of SMTP server.
      */
-    const ACCESS_TOKEN = 'access-token';
+    const SERVER_ADDRESS = 'server-address';
+    /**
+     * An option which is used to set the username at which it is used to log in to SMTP server.
+     */
+    const USERNAME = 'user';
 }

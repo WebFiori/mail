@@ -2,9 +2,9 @@
 namespace WebFiori\Mail;
 
 use TypeError;
-use WebFiori\Mail\Exceptions\SMTPException;
 use WebFiori\File\Exceptions\FileException;
 use WebFiori\File\File;
+use WebFiori\Mail\Exceptions\SMTPException;
 use WebFiori\UI\Exceptions\InvalidNodeNameException;
 use WebFiori\UI\Exceptions\TemplateNotFoundException;
 use WebFiori\UI\HTMLDoc;
@@ -26,15 +26,6 @@ class Email {
         0 => 'normal',
         1 => 'urgent'
     ];
-    private $isSent;
-    /**
-     * Checks if the method Email::send() was called or not.
-     * 
-     * @return bool If it was called, the method will return true. False otherwise.
-     */
-    public function isSent() : bool {
-        return $this->isSent;
-    }
     private $afterSendPool;
     /**
      * An array that contains an objects of type 'File' or 
@@ -66,6 +57,7 @@ class Email {
      */
     private $document;
     private $inReplyTo;
+    private $isSent;
 
     private $log;
     private $mode;
@@ -122,9 +114,11 @@ class Email {
         $this->document = new HTMLDoc();
         $this->mode = SendMode::PROD;
         $this->modeConfig = [];
-        $this->addBeforeSend(function (Email $email) {
+        $this->addBeforeSend(function (Email $email)
+        {
             $email->isSent = true;
         }, [$this]);
+
         if ($sendAccount !== null) {
             $this->setSMTPAccount($sendAccount);
         }
@@ -584,6 +578,14 @@ class Email {
             }
         }
     }
+    /**
+     * Checks if the method Email::send() was called or not.
+     * 
+     * @return bool If it was called, the method will return true. False otherwise.
+     */
+    public function isSent() : bool {
+        return $this->isSent;
+    }
     public function rcptCount() : int {
         return count($this->getCC()) + count($this->getBCC()) + count($this->getTo());
     }
@@ -603,7 +605,6 @@ class Email {
      * @throws SMTPException
      */
     public function send() {
-        
         if ($this->isSent()) {
             throw new SMTPException('Message was already sent.');
         }
@@ -629,12 +630,12 @@ class Email {
             return;
         } else if ($sendMode == SendMode::TEST_SEND) {
             $config = $this->getModeConfig();
-            
+
             if (!isset($config['send-addresses'])) {
                 throw new SMTPException('Recipients are not set for mode SendMode::TEST_SEND.');
             }
             $rcpt = $config['send-addresses'];
-            
+
             if (gettype($rcpt) == 'string') {
                 $rcpt = explode(';', $rcpt);
             }
@@ -821,24 +822,6 @@ class Email {
         $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
-    }
-    /**
-     * Authenticate with SMTP server using appropriate method.
-     *
-     * @param SMTPServer $server SMTP server instance.
-     * @param SMTPAccount $account SMTP account instance.
-     *
-     * @return bool True if authentication successful, false otherwise.
-     */
-    private function authenticate(SMTPServer $server, SMTPAccount $account): bool {
-        $accessToken = $account->getAccessToken();
-
-        if ($accessToken !== null) {
-            
-            return $server->authOAuth($account->getUsername(), $accessToken);
-        }
-        
-        return $server->authLogin($account->getUsername(), $account->getPassword());
     }    
     private function addAddressHelper(string $address, string|null $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {
@@ -882,6 +865,23 @@ class Email {
             }
             $server->sendCommand('--'.$this->boundry.'--'.SMTPServer::NL);
         }
+    }
+    /**
+     * Authenticate with SMTP server using appropriate method.
+     *
+     * @param SMTPServer $server SMTP server instance.
+     * @param SMTPAccount $account SMTP account instance.
+     *
+     * @return bool True if authentication successful, false otherwise.
+     */
+    private function authenticate(SMTPServer $server, SMTPAccount $account): bool {
+        $accessToken = $account->getAccessToken();
+
+        if ($accessToken !== null) {
+            return $server->authOAuth($account->getUsername(), $accessToken);
+        }
+
+        return $server->authLogin($account->getUsername(), $account->getPassword());
     }
     private function getReceiversStrHelper(string $type, bool $encode = true) : string {
         $arr = [];
@@ -975,6 +975,7 @@ class Email {
      */
     private function trimControlChars(string $str) : string {
         $trimmed = trim($str, "\x00..\x20");
+
         //Removes any invalid line feed.
         return preg_replace("/(\s*[\r\n]+\s*|\s+)/", ' ', $trimmed);
     }
