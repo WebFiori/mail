@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\Mail;
 
-use WebFiori\Mail\exceptions\SMTPException;
+use WebFiori\Mail\Exceptions\SMTPException;
 /**
  * A class which can be used to connect to SMTP server and execute commands on it.
  *
@@ -110,7 +110,28 @@ class SMTPServer {
 
         return true;
     }
+    /**
+     * Use OAuth2 XOAUTH2 method to authenticate with SMTP server.
+     *
+     * @param string $username The username (email address).
+     * @param string $accessToken OAuth2 access token.
+     *
+     * @return bool True if authentication successful, false otherwise.
+     */
+    public function authOAuth(string $username, string $accessToken): bool {
+        if (!$this->isConnected()) {
+            $this->connect();
 
+            if (!$this->isConnected()) {
+                return false;
+            }
+        }
+
+        $authString = base64_encode("user=$username\x01auth=Bearer $accessToken\x01\x01");
+        $this->sendCommand("AUTH XOAUTH2 $authString");
+
+        return $this->getLastResponseCode() == 235;
+    }
     /**
      * Connects to SMTP server.
      *

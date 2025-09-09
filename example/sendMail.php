@@ -6,19 +6,10 @@ use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
 
+$config = require '../config/accounts.php';
 //First, create new SMTP account that holds SMTP connection information.
-$smtp = new SMTPAccount([
-    AccountOption::PORT => 465,
-    //Replace server address with your mail server address
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    //Replace server username with your mail server username
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    //Replace sender address with your mail server sender address
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]);
+$smtp = new SMTPAccount(
+    $config['other-smtp-1']);
 
 //Second, create your actual email. using the account that was just created to
 //send messages.

@@ -114,4 +114,19 @@ class SMTPAccountTest extends TestCase {
         $acc->setUsername('    webfiori@hello-00.com    ');
         $this->assertEquals('webfiori@hello-00.com',$acc->getUsername());
     }
+    /**
+     * @test
+     */
+    public function testAccessToken() {
+        $acc = new SMTPAccount([
+            AccountOption::ACCESS_TOKEN => 'test-token-123'
+        ]);
+        $this->assertEquals('test-token-123', $acc->getAccessToken());
+        
+        $acc->setAccessToken('new-token-456');
+        $this->assertEquals('new-token-456', $acc->getAccessToken());
+        
+        $acc->setAccessToken(null);
+        $this->assertNull($acc->getAccessToken());
+    }
 }
