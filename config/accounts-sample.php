@@ -11,9 +11,9 @@ return [
     'other-smtp-1' => [
         AccountOption::SERVER_ADDRESS => 'mail.programmingacademia.com',
         AccountOption::PORT => 587,
-        AccountOption::USERNAME => getenv('OTHER_USERNAME_1') ?: 'test@programmingacademia.com',
-        AccountOption::PASSWORD => getenv('OTHER_PASSWORD_1') ?: 'your-password',
-        AccountOption::SENDER_ADDRESS => 'programmingacademia.com',
+        AccountOption::USERNAME => getenv('OTHER_SMTP_USERNAME_1') ?: 'test@programmingacademia.com',
+        AccountOption::PASSWORD => getenv('OTHER_SMTP_PASSWORD_1') ?: 'your-password',
+        AccountOption::SENDER_ADDRESS => 'test@programmingacademia.com',
         AccountOption::SENDER_NAME => 'Test Sender 1',
         AccountOption::NAME => 'other-test-1'
     ],
