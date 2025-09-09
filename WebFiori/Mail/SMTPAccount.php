@@ -6,7 +6,6 @@ namespace WebFiori\Mail;
  *
  * @author Ibrahim
  * 
- * @version 1.0.3
  */
 class SMTPAccount {
     /**

@@ -637,6 +637,34 @@ class EmailMessageTest extends TestCase {
         $this->assertEquals(SendMode::TEST_SEND, $message->getMode());
         $message->send();
     }
+    /**
+     * @test
+     */
+    public function testFluentTo() {
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
+        $result = $message->to('test@example.com', 'Test User');
+        
+        $this->assertInstanceOf(Email::class, $result);
+        $this->assertSame($message, $result);
+        $this->assertEquals('=?UTF-8?B?VGVzdCBVc2Vy?= <test@example.com>', $message->getToStr());
+    }
+    /**
+     * @test
+     */
+    public function testFluentChaining() {
+        $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
+        
+        $result = $message->to('test@example.com')
+                         ->cc('cc@example.com')
+                         ->subject('Chained Test')
+                         ->priority(1);
+        
+        $this->assertInstanceOf(Email::class, $result);
+        $this->assertSame($message, $result);
+        $this->assertEquals('test@example.com', $message->getTo()[0]['address']);
+        $this->assertEquals('Chained Test', $message->getSubject());
+        $this->assertEquals(1, $message->getPriority());
+    }
 }
 
 
