@@ -23,8 +23,8 @@ class EmailMessageTest extends TestCase {
     }
 
     private static function loadConfig(): void {
-        $configPath = __DIR__ . '/../../../../config/accounts.php';
-        $samplePath = __DIR__ . '/../../../../config/accounts-sample.php';
+        $configPath = __DIR__ . '/../../config/accounts.php';
+        $samplePath = __DIR__ . '/../../config/accounts-sample.php';
 
         if (!file_exists($configPath)) {
             if (file_exists($samplePath)) {
