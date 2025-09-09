@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Sample SMTP accounts configuration for testing.
  * Copy this file to accounts.php and update with your credentials.
@@ -38,7 +39,7 @@ return [
             AccountOption::NAME => 'outlook-oauth-test',
             AccountOption::ACCESS_TOKEN => getenv('OUTLOOK_TOKEN') ?: 'your-access-token',
         ],
-        
+
         'google' => [
             AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
             AccountOption::PORT => 587,
