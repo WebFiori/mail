@@ -300,6 +300,7 @@ class EmailMessageTest extends TestCase {
      * @test
      */
     public function testSend00() {
+        var_dump(self::$config['other-smtp-1']);
         $message = new Email(new SMTPAccount(self::$config['other-smtp-1']));
         $this->assertEquals([
             'command' => '', 
