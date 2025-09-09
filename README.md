@@ -1,10 +1,10 @@
 # WebFiori Mailer 
-A basic library for sending HTML based emails using PHP. 
+A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP support, OAuth authentication, and advanced features. 
 
 
 <p align="center">
-  <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yml">
-    <img src="https://github.com/WebFiori/mail/actions/workflows/php84.yml/badge.svg?branch=main">
+  <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml">
+    <img src="https://github.com/WebFiori/mail/actions/workflows/php84.yaml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/mail">
     <img src="https://codecov.io/gh/WebFiori/mail/branch/main/graph/badge.svg" />
@@ -23,18 +23,14 @@ A basic library for sending HTML based emails using PHP.
 ## Supported PHP Versions
 |                                                                                        Build Status                                                                                        |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php70.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php70.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php71.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php71.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php72.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php72.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php73.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php73.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php74.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php74.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php80.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php81.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php82.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php83.yml/badge.svg?branch=main"></a>  |
-| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yml"><img src="https://github.com/WebFiori/mail/actions/workflows/php84.yml/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php81.yaml/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php82.yaml/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php83.yaml/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php84.yaml/badge.svg?branch=main"></a>  |
 
 ## In This Page:
+* [Installation](#installation)
+* [Examples](#examples)
 * [Usage](#usage)
   * [Basic Usage](#basic-usage)
     * [Connecting to SMTP Server](#connecting-to-smtp-server)
@@ -43,13 +39,34 @@ A basic library for sending HTML based emails using PHP.
     * [Adding a Recipient](#adding-a-recipient)
     * [Writing Some Text](#writing-some-text)
     * [Sending The Message](#sending-the-message)
-    * [All Togather](#all-togather)
+    * [All Together](#all-together)
+  * [Fluent Interface](#fluent-interface)
+  * [OAuth Authentication](#oauth-authentication)
 * [Attachments](#attachments)
 * [Before Send Callback](#before-send-callback)
 * [After Send Callback](#after-send-callback)
 * [Accessing SMTP Log](#accessing-smtp-log)
 * [Storing Email](#storing-email)
 * [Setup Testing](#setup-testing)
+
+## Installation
+
+Install via Composer:
+
+```bash
+composer require webfiori/mailer
+```
+
+## Examples
+
+Comprehensive examples are available in the [`examples/`](examples/) directory:
+
+- **[Basic Usage](examples/basic-usage/)** - Fundamental email sending and fluent interface
+- **[OAuth Authentication](examples/oauth-usage/)** - Gmail and Microsoft OAuth integration  
+- **[File Attachments](examples/attachments/)** - Adding files to emails
+- **[Sending Modes](examples/sending-modes/)** - Test, development, and production configurations
+- **[SMTP Logging](examples/accessing-log/)** - Debugging and monitoring
+- **[Callbacks](examples/callbacks/)** - Before/after send custom logic
 
 ## Usage
 
@@ -140,7 +157,7 @@ The final step is to send the message. This can be performed using the method `E
 $email->send();
 ```
 
-#### All Togather
+#### All Together
 
 When we put all the steps as one, we would have the following:
 
@@ -178,9 +195,62 @@ $div->addChild('p', [
 
 $email->send();
 ```
+### Fluent Interface
+
+WebFiori Mailer supports method chaining for a more readable and concise syntax:
+
+```php
+$email = new Email($smtpAccount);
+
+$email->to('recipient@example.com', 'Recipient Name')
+      ->cc('manager@example.com', 'Manager')
+      ->subject('Hello from WebFiori Mailer!')
+      ->priority(1)
+      ->send();
+```
+
+Available fluent methods:
+- `to()` - Add TO recipient
+- `cc()` - Add CC recipient  
+- `bcc()` - Add BCC recipient
+- `subject()` - Set email subject
+- `attach()` - Add attachment
+- `priority()` - Set email priority
+
+### OAuth Authentication
+
+WebFiori Mailer supports OAuth2 authentication for enhanced security with modern email providers:
+
+#### Gmail OAuth
+```php
+$gmailAccount = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
+    AccountOption::PORT => 587,
+    AccountOption::USERNAME => 'your-email@gmail.com',
+    AccountOption::ACCESS_TOKEN => 'your-oauth-access-token',
+    AccountOption::SENDER_ADDRESS => 'your-email@gmail.com',
+    AccountOption::SENDER_NAME => 'Your Name',
+    AccountOption::NAME => 'gmail-oauth'
+]);
+```
+
+#### Microsoft OAuth
+```php
+$microsoftAccount = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp-mail.outlook.com',
+    AccountOption::PORT => 587,
+    AccountOption::USERNAME => 'your-email@outlook.com',
+    AccountOption::ACCESS_TOKEN => 'your-microsoft-oauth-token',
+    AccountOption::SENDER_ADDRESS => 'your-email@outlook.com',
+    AccountOption::SENDER_NAME => 'Your Name',
+    AccountOption::NAME => 'microsoft-oauth'
+]);
+```
+
+See the [OAuth examples](examples/oauth-usage/) for complete setup instructions.
 ## Attachments
 
-Attachements can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
+Attachments can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
 
 ``` php
 use WebFiori\Mail\AccountOption;
@@ -198,7 +268,7 @@ $smtp = new SMTPAccount([
     AccountOption::NAME => 'no-reply'
 ]);
 
-$email = new EmailMessage($smtp);
+$email = new Email($smtp);
  
 $email->addAttachment('Attach00.txt');
 $email->addAttachment(new File('another.txt'));
@@ -363,7 +433,7 @@ $m->send();
 
 ```
 
-### Storing as Web Pages
+### Sending to Test Addresses
 
 In this case, the mode of sending the message should be set to `SendMode::TEST_SEND`. Additionally, the addresses of the users who will receive the email must be provided.
 
