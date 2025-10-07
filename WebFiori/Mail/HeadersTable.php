@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\Mail;
 
-use WebFiori\UI\HTMLTable;
+use WebFiori\Ui\HTMLTable;
 
 /**
  * This table is used to show headers values for specific email when stored as HTML. 
