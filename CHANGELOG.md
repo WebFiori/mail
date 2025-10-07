@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/WebFiori/mail/compare/v2.0.0...v2.1.0) (2025-10-07)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#39](https://github.com/WebFiori/mail/issues/39) from WebFiori/dev ([0fbe9f1](https://github.com/WebFiori/mail/commit/0fbe9f1998b71f2df456cb2d11f7a623f353be2f))
+
 ## [2.0.0](https://github.com/WebFiori/mail/compare/v1.3.1...v2.0.0) (2025-09-09)
 
 
