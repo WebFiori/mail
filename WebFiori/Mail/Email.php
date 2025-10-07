@@ -5,10 +5,10 @@ use TypeError;
 use WebFiori\File\Exceptions\FileException;
 use WebFiori\File\File;
 use WebFiori\Mail\Exceptions\SMTPException;
-use WebFiori\UI\Exceptions\InvalidNodeNameException;
-use WebFiori\UI\Exceptions\TemplateNotFoundException;
-use WebFiori\UI\HTMLDoc;
-use WebFiori\UI\HTMLNode;
+use WebFiori\Ui\Exceptions\InvalidNodeNameException;
+use WebFiori\Ui\Exceptions\TemplateNotFoundException;
+use WebFiori\Ui\HTMLDoc;
+use WebFiori\Ui\HTMLNode;
 /**
  * A class that can be used to write HTML formatted Email messages.
  *
