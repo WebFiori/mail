@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/WebFiori/mail/compare/v2.1.0...v2.1.1) (2026-06-02)
+
+
+### Miscellaneous Chores
+
+* Verstion Update ([950060d](https://github.com/WebFiori/mail/commit/950060d10399d1480cea4fa90d794096723ce088))
+
 ## [2.1.0](https://github.com/WebFiori/mail/compare/v2.0.0...v2.1.0) (2025-10-07)
 
 
