@@ -28,7 +28,7 @@
         "sockets"
     ],
     "scripts":{
-        "test": "vendor/bin/phpunit -c tests/phpunit10.xml",
+        "test": "vendor/bin/phpunit -c tests/phpunit.xml",
         "test-integration": "vendor/bin/phpunit -c tests/phpunit-integration.xml",
         "fix-cs": "vendor/bin/php-cs-fixer fix --config=php_cs.php.dist"
     },
