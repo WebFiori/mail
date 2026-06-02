@@ -1,0 +1,12 @@
+name: Integration Tests (Manual)
+
+on: workflow_dispatch
+
+jobs:
+  test:
+    name: Run Integration Tests
+    uses: WebFiori/workflows/.github/workflows/test-php.yaml@v1.2.5
+    with:
+      php-version: '8.4'
+      phpunit-config: 'tests/phpunit-integration.xml'
+    secrets: inherit

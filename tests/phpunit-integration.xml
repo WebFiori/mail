@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" stderr="true" colors="true" bootstrap="bootstrap.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache" displayDetailsOnSkippedTests="true">
-  <coverage includeUncoveredFiles="true">
-    <report>
-      <clover outputFile="clover.xml"/>
-    </report>
-  </coverage>
-  <php>
-    </php>
-  <logging/>
   <testsuites>
-    <testsuite name="Tests">
+    <testsuite name="Integration Tests">
       <directory>./WebFiori/Tests/Mail</directory>
     </testsuite>
   </testsuites>
-  <source>
+  <groups>
     <include>
-      <file>../WebFiori/Mail/Email.php</file>
-      <file>../WebFiori/Mail/SMTPAccount.php</file>
-      <file>../WebFiori/Mail/SMTPServer.php</file>
+      <group>integration</group>
     </include>
-  </source>
+  </groups>
 </phpunit>

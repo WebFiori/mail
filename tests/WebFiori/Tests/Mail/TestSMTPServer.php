@@ -1,33 +1,47 @@
 <?php
-
 namespace WebFiori\Tests\Mail;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Mail\SMTPServer;
+
 /**
- * Description of TestSMTPServer
- *
- * @author Ibrahim
+ * Tests for SMTPServer class using FakeSMTPServer.
  */
 class TestSMTPServer extends TestCase {
+    private static ?FakeSMTPServer $fakeServer = null;
+    private static int $port = 2527;
+
+    public static function setUpBeforeClass(): void {
+        self::$fakeServer = new FakeSMTPServer(self::$port);
+        self::$fakeServer->start();
+    }
+
+    public static function tearDownAfterClass(): void {
+        if (self::$fakeServer) {
+            self::$fakeServer->stop();
+        }
+    }
+
     /**
      * @test
      */
     public function test00() {
-        $server = new SMTPServer('smtp.gmail.com', 465);
-        $this->assertEquals('smtp.gmail.com', $server->getHost());
-        $this->assertEquals(465, $server->getPort());
-        
+        $server = new SMTPServer('127.0.0.1', self::$port);
+        $this->assertEquals('127.0.0.1', $server->getHost());
+        $this->assertEquals(self::$port, $server->getPort());
+
         $this->assertTrue($server->connect());
     }
+
     /**
      * @test
      */
     public function test01() {
-        $server = new SMTPServer('smtp.outlook.com', 587);
-        $this->assertEquals('smtp.outlook.com', $server->getHost());
-        $this->assertEquals(587, $server->getPort());
-        
+        $server = new SMTPServer('127.0.0.1', self::$port);
+        $this->assertEquals('127.0.0.1', $server->getHost());
+        $this->assertEquals(self::$port, $server->getPort());
+
         $this->assertTrue($server->connect());
+        $this->assertTrue($server->isConnected());
     }
 }
