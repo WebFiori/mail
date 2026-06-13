@@ -17,8 +17,10 @@ use WebFiori\File\File;
 class EmailMessageTest extends TestCase {
     private static ?FakeSMTPServer $fakeServer = null;
     private static ?FakeSMTPServer $rejectServer = null;
+    private static ?FakeSMTPServer $greylistServer = null;
     private static int $fakePort = 2525;
     private static int $rejectPort = 2526;
+    private static int $greylistPort = 2527;
 
     public static function setUpBeforeClass(): void {
         self::$fakeServer = new FakeSMTPServer(self::$fakePort);
@@ -27,6 +29,10 @@ class EmailMessageTest extends TestCase {
         self::$rejectServer = new FakeSMTPServer(self::$rejectPort);
         self::$rejectServer->setRejectAuth(true);
         self::$rejectServer->start();
+
+        self::$greylistServer = new FakeSMTPServer(self::$greylistPort);
+        self::$greylistServer->setGreylist(true);
+        self::$greylistServer->start();
     }
 
     public static function tearDownAfterClass(): void {
@@ -35,6 +41,9 @@ class EmailMessageTest extends TestCase {
         }
         if (self::$rejectServer) {
             self::$rejectServer->stop();
+        }
+        if (self::$greylistServer) {
+            self::$greylistServer->stop();
         }
     }
 
@@ -606,5 +615,114 @@ class EmailMessageTest extends TestCase {
         $this->assertArrayHasKey('cc@example.com', $message->getCC());
         $this->assertEquals('Chained Test', $message->getSubject());
         $this->assertEquals(1, $message->getPriority());
+    }
+
+    /**
+     * @test
+     * Tests SMTPServer::reset() method.
+     */
+    public function testServerReset() {
+        $server = new SMTPServer('127.0.0.1', self::$fakePort);
+        $this->assertTrue($server->connect());
+        $this->assertTrue($server->isConnected());
+        $this->assertTrue($server->reset());
+        $this->assertEquals(250, $server->getLastResponseCode());
+    }
+
+    /**
+     * @test
+     * Tests SMTPServer::reset() when not connected.
+     */
+    public function testServerResetNotConnected() {
+        $server = new SMTPServer('127.0.0.1', self::$fakePort);
+        $this->assertFalse($server->reset());
+    }
+
+    /**
+     * @test
+     * Tests Email::send() with an external SMTPServer instance.
+     */
+    public function testSendWithExternalServer() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $server = new SMTPServer('127.0.0.1', self::$fakePort);
+        $server->connect();
+        $server->authLogin('test@example.com', 'password123');
+
+        $message = new Email($account);
+        $message->setSubject('External Server Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Sent via external server.');
+
+        $message->send($server);
+
+        $lastLog = $message->getSMTPServer()->getLastLogEntry();
+        $this->assertEquals('QUIT', $lastLog['command']);
+        $this->assertEquals(221, $lastLog['code']);
+    }
+
+    /**
+     * @test
+     * Tests that multipart/alternative is included in sent message.
+     */
+    public function testMultipartAlternative() {
+        $message = new Email(new SMTPAccount($this->getValidAccount()));
+        $message->setSubject('Multipart Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Hello plain text world.');
+        $message->send();
+
+        $log = $message->getSMTPServer()->getLog();
+        $commands = array_column($log, 'command');
+
+        $hasTextPlain = false;
+        $hasTextHtml = false;
+        $hasAlternative = false;
+
+        foreach ($commands as $cmd) {
+            if (str_contains($cmd, 'multipart/alternative')) {
+                $hasAlternative = true;
+            }
+            if (str_contains($cmd, 'text/plain')) {
+                $hasTextPlain = true;
+            }
+            if (str_contains($cmd, 'text/html')) {
+                $hasTextHtml = true;
+            }
+        }
+
+        $this->assertTrue($hasAlternative, 'multipart/alternative boundary should be present');
+        $this->assertTrue($hasTextPlain, 'text/plain part should be present');
+        $this->assertTrue($hasTextHtml, 'text/html part should be present');
+    }
+
+    /**
+     * @test
+     * Tests that greylisting (451) on RCPT TO triggers a retry and succeeds.
+     */
+    public function testGreylistingRetry() {
+        $account = new SMTPAccount([
+            AccountOption::PORT => self::$greylistPort,
+            AccountOption::SERVER_ADDRESS => '127.0.0.1',
+            AccountOption::USERNAME => 'test@example.com',
+            AccountOption::PASSWORD => 'password123',
+            AccountOption::SENDER_NAME => 'Test Sender',
+            AccountOption::SENDER_ADDRESS => 'test@example.com',
+            AccountOption::NAME => 'greylist-account'
+        ]);
+
+        $message = new Email($account);
+        $message->setSubject('Greylist Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('This should succeed after retry.');
+        $message->send();
+
+        $lastLog = $message->getSMTPServer()->getLastLogEntry();
+        $this->assertEquals('QUIT', $lastLog['command']);
+        $this->assertEquals(221, $lastLog['code']);
+
+        // Verify RSET was sent (indicates retry happened)
+        $log = $message->getSMTPServer()->getLog();
+        $commands = array_column($log, 'command');
+        $this->assertTrue(in_array('RSET', $commands), 'RSET should have been sent for greylisting retry');
     }
 }

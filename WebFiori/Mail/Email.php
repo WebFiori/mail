@@ -282,6 +282,44 @@ class Email {
         return $this->addAddressHelper($address, $name, 'to');
     }
     /**
+     * Adds an attachment to the email message.
+     * 
+     * @param string|File $fileObjOrFilePath Either a file path as string or a File object.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function attach($fileObjOrFilePath): Email {
+        $this->addAttachment($fileObjOrFilePath);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'BCC' (Blind Carbon Copy) field of the email message.
+     * 
+     * @param string $address The email address of the BCC recipient.
+     * @param string|null $name Optional display name for the BCC recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function bcc(string $address, ?string $name = null): Email {
+        $this->addBCC($address, $name);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'CC' (Carbon Copy) field of the email message.
+     * 
+     * @param string $address The email address of the CC recipient.
+     * @param string|null $name Optional display name for the CC recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function cc(string $address, ?string $name = null): Email {
+        $this->addCC($address, $name);
+
+        return $this;
+    }
+    /**
      * Returns an array that contains the information of all added attachments.
      * 
      * @return array An array that contains the information of all added attachments.
@@ -586,6 +624,18 @@ class Email {
     public function isSent() : bool {
         return $this->isSent;
     }
+    /**
+     * Sets the priority level of the email message.
+     * 
+     * @param int $messagePriority The priority level (-1 for low, 0 for normal, 1 for high).
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function priority(int $messagePriority): Email {
+        $this->setPriority($messagePriority);
+
+        return $this;
+    }
     public function rcptCount() : int {
         return count($this->getCC()) + count($this->getBCC()) + count($this->getTo());
     }
@@ -602,9 +652,13 @@ class Email {
     /**
      * Sends the message.
      * 
+     * @param SMTPServer|null $server An optional external SMTPServer instance to use
+     * for sending. This allows reusing an already-authenticated connection. If null,
+     * a new connection will be created from the SMTPAccount.
+     * 
      * @throws SMTPException
      */
-    public function send() {
+    public function send(SMTPServer|null $server = null) {
         if ($this->isSent()) {
             throw new SMTPException('Message was already sent.');
         }
@@ -652,40 +706,53 @@ class Email {
         } 
 
         $acc = $this->getSMTPAccount();
-        $server = $this->getSMTPServer();
+
+        if ($server !== null) {
+            $this->smtpServer = $server;
+        }
+        $smtpServer = $this->getSMTPServer();
 
         if ($this->rcptCount() == 0) {
             throw new SMTPException('No message recipients.');
         }
 
-        if ($this->authenticate($server, $acc)) {
-            $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
+        $isExternalServer = $server !== null && $smtpServer->isConnected();
+
+        if ($isExternalServer || $this->authenticate($smtpServer, $acc)) {
+            $smtpServer->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
 
             $this->receiversCommandHelper('to');
             $this->receiversCommandHelper('cc');
             $this->receiversCommandHelper('bcc');
-            $server->sendCommand('DATA');
+            $smtpServer->sendCommand('DATA');
             $importanceHeaderVal = $this->priorityCommandHelper();
 
-            $server->sendCommand('Content-Transfer-Encoding: quoted-printable');
-            $server->sendCommand('Importance: '.$importanceHeaderVal);
-            $server->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
-            $server->sendCommand('To: '.$this->getReceiversStrHelper('to'), false);
-            $server->sendCommand('CC: '.$this->getReceiversStrHelper('cc'), false);
-            $server->sendCommand('BCC: '.$this->getReceiversStrHelper('bcc'), false);
-            $server->sendCommand('Date:'.date('r (T)'));
-            $server->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
-            $server->sendCommand('MIME-Version: 1.0');
-            $server->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
-            $server->sendCommand('--'.$this->boundry);
-            $server->sendCommand('Content-Type: text/html; charset="UTF-8"'.SMTPServer::NL);
-            $server->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
+            $smtpServer->sendCommand('Importance: '.$importanceHeaderVal);
+            $smtpServer->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
+            $smtpServer->sendCommand('To: '.$this->getReceiversStrHelper('to'), false);
+            $smtpServer->sendCommand('CC: '.$this->getReceiversStrHelper('cc'), false);
+            $smtpServer->sendCommand('BCC: '.$this->getReceiversStrHelper('bcc'), false);
+            $smtpServer->sendCommand('Date:'.date('r (T)'));
+            $smtpServer->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
+            $smtpServer->sendCommand('MIME-Version: 1.0');
+            $smtpServer->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
+            $smtpServer->sendCommand('--'.$this->boundry);
+            $smtpServer->sendCommand('Content-Type: multipart/alternative; boundary="'.$this->boundry.'-alt"'.SMTPServer::NL);
+            $smtpServer->sendCommand('--'.$this->boundry.'-alt');
+            $smtpServer->sendCommand('Content-Type: text/plain; charset="UTF-8"');
+            $smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
+            $smtpServer->sendCommand($this->getPlainTextBody());
+            $smtpServer->sendCommand('--'.$this->boundry.'-alt');
+            $smtpServer->sendCommand('Content-Type: text/html; charset="UTF-8"');
+            $smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
+            $smtpServer->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
+            $smtpServer->sendCommand('--'.$this->boundry.'-alt--');
             $this->appendAttachments();
-            $server->sendCommand(SMTPServer::NL.'.');
-            $server->sendCommand('QUIT');
+            $smtpServer->sendCommand(SMTPServer::NL.'.');
+            $smtpServer->sendCommand('QUIT');
             $this->invokeAfterSend();
         } else {
-            throw new SMTPException('Unable to login to SMTP server: '.$server->getLastResponse(), $server->getLastResponseCode(), $server->getLog());
+            throw new SMTPException('Unable to login to SMTP server: '.$smtpServer->getLastResponse(), $smtpServer->getLastResponseCode(), $smtpServer->getLog());
         }
     }
     /**
@@ -822,6 +889,31 @@ class Email {
         $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
+    }
+    /**
+     * Sets the subject of the email message.
+     * 
+     * @param string $subject The subject line of the email.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function subject(string $subject): Email {
+        $this->setSubject($subject);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'TO' field of the email message.
+     * 
+     * @param string $address The email address of the recipient.
+     * @param string|null $name Optional display name for the recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function to(string $address, ?string $name = null): Email {
+        $this->addTo($address, $name);
+
+        return $this;
     }    
     private function addAddressHelper(string $address, string|null $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {
@@ -883,6 +975,20 @@ class Email {
 
         return $server->authLogin($account->getUsername(), $account->getPassword());
     }
+    /**
+     * Extracts a plain text version of the email body from the HTML document.
+     * 
+     * @return string Plain text representation of the email body.
+     */
+    private function getPlainTextBody() : string {
+        $html = $this->getDocument()->getBody()->toHTML();
+        $text = strip_tags($html);
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+        $text = preg_replace("/[ \t]+/", ' ', $text);
+        $text = preg_replace("/\n\s*\n+/", "\n\n", $text);
+
+        return trim($text);
+    }
     private function getReceiversStrHelper(string $type, bool $encode = true) : string {
         $arr = [];
 
@@ -927,6 +1033,14 @@ class Email {
 
         foreach ($this->receiversArr[$type] as $address => $name) {
             $server->sendCommand('RCPT TO: <'.$address.'>');
+
+            if ($server->getLastResponseCode() == 451) {
+                // Greylisting: single immediate retry after brief delay.
+                // Reset to clear the 4xx error state before retrying.
+                $server->reset();
+                sleep(1);
+                $server->sendCommand('RCPT TO: <'.$address.'>');
+            }
         }
     }
     private function setupBeoreTesting() {
@@ -978,74 +1092,5 @@ class Email {
 
         //Removes any invalid line feed.
         return preg_replace("/(\s*[\r\n]+\s*|\s+)/", ' ', $trimmed);
-    }
-    /**
-     * Adds a recipient to the 'TO' field of the email message.
-     * 
-     * @param string $address The email address of the recipient.
-     * @param string|null $name Optional display name for the recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function to(string $address, ?string $name = null): Email {
-        $this->addTo($address, $name);
-        return $this;
-    }
-    /**
-     * Adds a recipient to the 'CC' (Carbon Copy) field of the email message.
-     * 
-     * @param string $address The email address of the CC recipient.
-     * @param string|null $name Optional display name for the CC recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function cc(string $address, ?string $name = null): Email {
-        $this->addCC($address, $name);
-        return $this;
-    }
-    /**
-     * Adds a recipient to the 'BCC' (Blind Carbon Copy) field of the email message.
-     * 
-     * @param string $address The email address of the BCC recipient.
-     * @param string|null $name Optional display name for the BCC recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function bcc(string $address, ?string $name = null): Email {
-        $this->addBCC($address, $name);
-        return $this;
-    }
-    /**
-     * Sets the subject of the email message.
-     * 
-     * @param string $subject The subject line of the email.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function subject(string $subject): Email {
-        $this->setSubject($subject);
-        return $this;
-    }
-    /**
-     * Adds an attachment to the email message.
-     * 
-     * @param string|File $fileObjOrFilePath Either a file path as string or a File object.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function attach($fileObjOrFilePath): Email {
-        $this->addAttachment($fileObjOrFilePath);
-        return $this;
-    }
-    /**
-     * Sets the priority level of the email message.
-     * 
-     * @param int $messagePriority The priority level (-1 for low, 0 for normal, 1 for high).
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function priority(int $messagePriority): Email {
-        $this->setPriority($messagePriority);
-        return $this;
     }
 }

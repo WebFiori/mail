@@ -14,3 +14,4 @@ tests/config/accounts.php
 tests/oauth/providers.php
 tests/oauth/tokens/
 .php-cs-fixer.cache
+/tests/WebFiori/Tests/Mail

@@ -1,5 +1,38 @@
 # Changelog
 
+## [2.1.1](https://github.com/WebFiori/mail/compare/v2.1.0...v2.1.1) (2026-06-02)
+
+
+### Miscellaneous Chores
+
+* Verstion Update ([950060d](https://github.com/WebFiori/mail/commit/950060d10399d1480cea4fa90d794096723ce088))
+
+## [2.1.0](https://github.com/WebFiori/mail/compare/v2.0.0...v2.1.0) (2025-10-07)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#39](https://github.com/WebFiori/mail/issues/39) from WebFiori/dev ([0fbe9f1](https://github.com/WebFiori/mail/commit/0fbe9f1998b71f2df456cb2d11f7a623f353be2f))
+
+## [2.0.0](https://github.com/WebFiori/mail/compare/v1.3.1...v2.0.0) (2025-09-09)
+
+
+### Features
+
+* Added Support for OAuth Authentication ([d06cf9a](https://github.com/WebFiori/mail/commit/d06cf9a3d6ac21cde918a72419add03bdf08a6a7))
+
+
+### Miscellaneous Chores
+
+* Fix CS Config ([db2275e](https://github.com/WebFiori/mail/commit/db2275e80abff935c16dd2457d0f3d6498ebf3f3))
+* Run CS Fixer ([5e6beed](https://github.com/WebFiori/mail/commit/5e6beed7b27ab6fdba92a413b1e50c93833d3567))
+* Updated Dependencies ([113bd52](https://github.com/WebFiori/mail/commit/113bd52ce670b1b1241c852de12050da39629aef))
+
+
+### Documentation
+
+* Enhanced README + Added Usage Examples ([e299238](https://github.com/WebFiori/mail/commit/e2992388882c3ddec4173287ffd3ec35fac56235))
+
 ## [1.3.1](https://github.com/WebFiori/mail/compare/v1.3.0...v1.3.1) (2024-12-24)
 
 

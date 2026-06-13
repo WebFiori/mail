@@ -1,6 +1,6 @@
-# WebFiori Mailer 
-A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP support, OAuth authentication, and advanced features. 
+# WebFiori Mailer
 
+Sockets-based library for sending HTML email messages.
 
 <p align="center">
   <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml">
@@ -18,9 +18,73 @@ A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP s
   <a href="https://packagist.org/packages/webfiori/mailer">
     <img src="https://img.shields.io/packagist/dt/webfiori/mailer?color=light-green">
   </a>
+  <img src="https://img.shields.io/badge/php-%3E%3D8.1-blue" alt="PHP 8.1+">
 </p>
 
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Supported PHP Versions](#supported-php-versions)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+  - [Fluent Interface](#fluent-interface)
+  - [OAuth Authentication](#oauth-authentication)
+  - [Attachments](#attachments)
+  - [Before Send Callback](#before-send-callback)
+  - [After Send Callback](#after-send-callback)
+  - [Accessing SMTP Log](#accessing-smtp-log)
+  - [Storing Email](#storing-email)
+  - [Testing Modes](#testing-modes)
+- [Examples](#examples)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Changelog](#changelog)
+
+## Motivation
+
+### HTML-First Composition
+
+Most mailing libraries treat the email body as a string you pass in. WebFiori Mailer treats emails as **HTML documents you build** using a virtual DOM. You compose emails the same way you'd build a web page — inserting elements, nesting children, setting styles programmatically:
+
+```php
+$div = $email->insert('div');
+$div->addChild('p')->text('Hello!');
+$div->addChild('p', ['style' => ['color' => 'red']])->text('Important message.');
+```
+
+No raw HTML strings. No template engine required (though templates are supported too).
+
+### Minimal Dependencies
+
+The library relies only on two lightweight packages (`webfiori/ui` for DOM building and `webfiori/file` for attachments). The SMTP layer is built directly on PHP sockets. No heavy third-party dependencies to keep up with.
+
+### Built-in Testing Modes
+
+Testing emails shouldn't require actually sending them or setting up third-party services:
+
+- **Store mode** — Renders the email as a local HTML file for visual inspection, complete with headers metadata.
+- **Test send mode** — Redirects messages to specified test addresses regardless of the actual recipients.
+
+Switch between modes with a single call:
+
+```php
+$email->setMode(SendMode::TEST_STORE, ['store-path' => '/tmp/emails']);
+```
+
+### SMTP Transparency
+
+Every command sent to the SMTP server is logged with its response code and message. When something fails, you see exactly what happened at the protocol level — no black-box debugging.
+
+### Lightweight and Self-Contained
+
+The entire library is a handful of classes. If all you need is to send HTML emails over SMTP without pulling in a large framework or dozens of transitive dependencies, this gets the job done.
+
 ## Supported PHP Versions
+
 |                                                                                        Build Status                                                                                        |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php81.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php81.yaml/badge.svg?branch=main"></a>  |
@@ -28,116 +92,92 @@ A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP s
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php83.yaml/badge.svg?branch=main"></a>  |
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php84.yaml/badge.svg?branch=main"></a>  |
 
-## In This Page:
-* [Installation](#installation)
-* [Examples](#examples)
-* [Usage](#usage)
-  * [Basic Usage](#basic-usage)
-    * [Connecting to SMTP Server](#connecting-to-smtp-server)
-    * [Creating Email Message](#creating-email-message)
-    * [Setting Email Subject](#setting-email-subject)
-    * [Adding a Recipient](#adding-a-recipient)
-    * [Writing Some Text](#writing-some-text)
-    * [Sending The Message](#sending-the-message)
-    * [All Together](#all-together)
-  * [Fluent Interface](#fluent-interface)
-  * [OAuth Authentication](#oauth-authentication)
-* [Attachments](#attachments)
-* [Before Send Callback](#before-send-callback)
-* [After Send Callback](#after-send-callback)
-* [Accessing SMTP Log](#accessing-smtp-log)
-* [Storing Email](#storing-email)
-* [Setup Testing](#setup-testing)
-
 ## Installation
-
-Install via Composer:
 
 ```bash
 composer require webfiori/mailer
 ```
 
-## Examples
+## Quick Start
 
-Comprehensive examples are available in the [`examples/`](examples/) directory:
+```php
+<?php
+use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\SMTPAccount;
+use WebFiori\Mail\Email;
 
-- **[Basic Usage](examples/basic-usage/)** - Fundamental email sending and fluent interface
-- **[OAuth Authentication](examples/oauth-usage/)** - Gmail and Microsoft OAuth integration  
-- **[File Attachments](examples/attachments/)** - Adding files to emails
-- **[Sending Modes](examples/sending-modes/)** - Test, development, and production configurations
-- **[SMTP Logging](examples/accessing-log/)** - Debugging and monitoring
-- **[Callbacks](examples/callbacks/)** - Before/after send custom logic
+$smtp = new SMTPAccount([
+    AccountOption::PORT => 465,
+    AccountOption::SERVER_ADDRESS => 'mail.example.com',
+    AccountOption::USERNAME => 'test@example.com',
+    AccountOption::PASSWORD => 'secret',
+    AccountOption::SENDER_NAME => 'My App',
+    AccountOption::SENDER_ADDRESS => 'test@example.com',
+    AccountOption::NAME => 'no-reply'
+]);
+
+$email = new Email($smtp);
+
+$email->setSubject('Hello World From PHP 😀');
+$email->addTo('recipient@example.com');
+
+$div = $email->insert('div');
+$div->addChild('p')->text('Hello World Message');
+$div->addChild('p', ['style' => ['font-weight' => 'bold', 'color' => 'red']])
+    ->text('This is just a test message.');
+
+$email->send();
+```
 
 ## Usage
 
 ### Basic Usage
 
-This section describes most basic use case of the library. It shows how to connect to SMTP server, writing a message and sending it to specific address.
-
 #### Connecting to SMTP Server
 
-Connection information are represented using an instance of the class [`WebFiori\Mail\SMTPAccount`](https://github.com/WebFiori/mail/blob/main/WebFiori/Mail/SMTPAccount.php).
-``` php
-<?php
-require '../vendor/autoload.php';
+Connection information is represented using an instance of the class [`WebFiori\Mail\SMTPAccount`](https://github.com/WebFiori/mail/blob/main/WebFiori/Mail/SMTPAccount.php).
 
+```php
+<?php
 use WebFiori\Mail\SMTPAccount;
 use WebFiori\Mail\AccountOption;
 
-//First, create new SMTP account that holds SMTP connection information.
 $smtp = new SMTPAccount([
     AccountOption::PORT => 465,
-
-    //Replace server address with your mail server address
     AccountOption::SERVER_ADDRESS => 'mail.example.com',
-
-    //Replace server username with your mail server username
     AccountOption::USERNAME => 'test@example.com',
-
     AccountOption::PASSWORD => 'KnvcbxFYCz77',
-
     AccountOption::SENDER_NAME => 'Ibrahim',
-
-    //Replace sender address with your mail server sender address
     AccountOption::SENDER_ADDRESS => 'test@example.com',
-
     AccountOption::NAME => 'no-reply'
 ]);
 ```
 
 #### Creating Email Message
 
-After having SMTP connection information, an instance of the class [`WebFiori\Mail\Email`](https://github.com/WebFiori/mail/blob/dev/WebFiori/Mail/Email.php) can be created. The consructor of the class will accept one parameter which is the connection that will be used to connect to SMTP server.
+```php
+use WebFiori\Mail\Email;
 
-``` php
-//Second, create your actual email. using the account that was just created to
-//send messages.
 $email = new Email($smtp);
 ```
+
 #### Setting Email Subject
 
-To set the subject of the message, the method `Email::setSubject()` can be used as follows:
-``` php
-//Set subject
+```php
 $email->setSubject('Hello World From PHP 😀');
 ```
 
 #### Adding a Recipient
 
-``` php
-//Specify who will receive the message
-$email->addTo('super-megaman-x@outlook.com');
+```php
+$email->addTo('recipient@example.com');
 ```
 
-#### Writing Some Text
+#### Writing HTML Content
 
-The email messages which are created using the library are HTML based. They utilize the library [`webfiori\ui`](https://github.com/WebFiori/ui) to build the virtual DOM.
+The email messages are HTML based, utilizing the library [`webfiori/ui`](https://github.com/WebFiori/ui) to build the virtual DOM.
 
-An HTML elemtnt can be inserted to the body of the message by using the method `Email::insert()`.
-
-``` php
-
-//Build your HTML Message
+```php
 $div = $email->insert('div');
 $div->addChild('p')->text('Hello World Message');
 $div->addChild('p', [
@@ -150,51 +190,10 @@ $div->addChild('p', [
 
 #### Sending The Message
 
-The final step is to send the message. This can be performed using the method `Email::send()`.
-
-``` php
-//Finally, send.
+```php
 $email->send();
 ```
 
-#### All Together
-
-When we put all the steps as one, we would have the following:
-
-``` php
-require '../vendor/autoload.php';
-
-use WebFiori\Mail\AccountOption;
-use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\Email;
-
-$smtp = new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]);
-
-$email = new Email($smtp);
-
-$email->setSubject('Hello World From PHP 😀');
-
-$email->addTo('super-megaman-x@outlook.com');
-
-$div = $email->insert('div');
-$div->addChild('p')->text('Hello World Message');
-$div->addChild('p', [
-    'style' => [
-        'font-weight' => 'bold',
-        'color' => 'red'
-    ]
-])->text('This is just a test message.');
-
-$email->send();
-```
 ### Fluent Interface
 
 WebFiori Mailer supports method chaining for a more readable and concise syntax:
@@ -211,7 +210,7 @@ $email->to('recipient@example.com', 'Recipient Name')
 
 Available fluent methods:
 - `to()` - Add TO recipient
-- `cc()` - Add CC recipient  
+- `cc()` - Add CC recipient
 - `bcc()` - Add BCC recipient
 - `subject()` - Set email subject
 - `attach()` - Add attachment
@@ -222,6 +221,7 @@ Available fluent methods:
 WebFiori Mailer supports OAuth2 authentication for enhanced security with modern email providers:
 
 #### Gmail OAuth
+
 ```php
 $gmailAccount = new SMTPAccount([
     AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
@@ -235,6 +235,7 @@ $gmailAccount = new SMTPAccount([
 ```
 
 #### Microsoft OAuth
+
 ```php
 $microsoftAccount = new SMTPAccount([
     AccountOption::SERVER_ADDRESS => 'smtp-mail.outlook.com',
@@ -248,228 +249,125 @@ $microsoftAccount = new SMTPAccount([
 ```
 
 See the [OAuth examples](examples/oauth-usage/) for complete setup instructions.
-## Attachments
 
-Attachments can be added to any email using the method `Email::addAttachment()`. The method accepts a single parameter. The parameter can be a `string` which represents the absolute path of the file to be attached or an object of type `webfiori\file\File`.
+### Attachments
 
-``` php
-use WebFiori\Mail\AccountOption;
-use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\Email;
+Attachments can be added using `Email::addAttachment()`. The parameter can be a file path string or an object of type `webfiori\file\File`.
+
+```php
 use webfiori\file\File;
 
-$smtp = new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]);
-
-$email = new Email($smtp);
- 
 $email->addAttachment('Attach00.txt');
 $email->addAttachment(new File('another.txt'));
 ```
 
-## Before Send Callback
+### Before Send Callback
 
-Suppose that a developer would like to perform a task everytime the method `Email::send()` is called, and that event must be called before connecting to SMTP server. In such case, the developer can use the method `Email::addBeforeSend()`. The method accepts two parameters, first one is a `function` callback and second one is an optional array of parameters to be passed to the callback. 
+Execute logic before the message is sent using `Email::addBeforeSend()`:
 
-``` php
-$smtp = new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]);
-
-$email = new Email($smtp);
-$email->setSubject('Hello World From PHP 😀');
-$email->addTo('super-megaman-x@outlook.com');
-
+```php
 $email->addBeforeSend(function (Email $e) {
-  $e->insert('p')->text('This text is added before sending');
+    $e->insert('p')->text('This text is added before sending');
 });
-
-$div = $email->insert('div');
-$div->addChild('p')->text('Hello World Message');
-
-$email->send();
-
 ```
 
-## After Send Callback
+### After Send Callback
 
-Suppose that a developer would like to perform a task everytime the method `Email::send()` is called, and that event must be called after sending the email. In such case, the developer can use the method `Email::addAfterSend()`. The method accepts two parameters, first one is a `function` callback and second one is an optional array of parameters to be passed to the callback. 
+Execute logic after the message is sent using `Email::addAfterSend()`:
 
-``` php
-$smtp = new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]);
-
-$email = new Email($smtp);
-$email->setSubject('Hello World From PHP 😀');
-$email->addTo('super-megaman-x@outlook.com');
-
+```php
 $email->addAfterSend(function (Email $e) {
- // Do any action like storing the log.
+    // Do any action like storing the log.
 });
-
-$div = $email->insert('div');
-$div->addChild('p')->text('Hello World Message');
-
-$email->send();
-
 ```
 
+### Accessing SMTP Log
 
-## Accessing SMTP Log
+Every SMTP command is logged with its response code and message. Access log events via `Email::getLog()`:
 
-One of the features of the library is the logging of SMTP commands that was sent to server. This is useful in case the developer would like to trace the cause of send failure. To access the log events, the method `Email::getLog()` can be used. The method will return an array that holds sub-assiciative arrays. each associative array will have 3 indices, `command`, `response-code` and `response-message`.
-
-``` php
+```php
 foreach ($email->getLog() as $logEvent) {
-  echo ' Command: '.$logEvent['command'];
-  echo ' Code: '.$logEvent['response-code'];
-  echo ' Message: '.$logEvent['response-message'];
+    echo ' Command: '.$logEvent['command'];
+    echo ' Code: '.$logEvent['response-code'];
+    echo ' Message: '.$logEvent['response-message'];
 }
 ```
 
-## Storing Email
+### Storing Email
 
-Since the emails which are constructed using the library are HTML based, they can be stored as HTML web pages. This feature is useful in case the developer would like to test a preview of final constructed email.
+Emails can be stored as HTML web pages for preview purposes:
 
-To store an email as HTML web page, the method `Email::storeEmail()` can be used as follows:
-
-``` php
-$m = new Email(new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]));
-$m->setSubject('Test Ability to Store Email');
-$m->addTo('ibx@example.com');
-$m->insert('p')->text('Dear,')->setStyle([
-    'font-weight' => 'bold',
-    'font-size' => '15pt'
-]);
-$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
-$m->insert('p')->text('Regards,')->setStyle([
-    'color' => 'green',
-    'font-weight' => 'bold'
-]);
-$m->storeEmail('/path/to/email/file');
+```php
+$email->storeEmail('/path/to/email/file');
 ```
 
-The call to the method `Email::storeEmail()` will do the following:
-
-* Render the final email.
-* Create a folder which has same subject as the email inside provided folder.
-* Create HTML file which has the date and time as its name inside the folder.
-
-The final output of the given code will be HTML web page that is similar to following image.
+This will:
+- Render the final email
+- Create a folder named after the email subject
+- Create an HTML file named with the current date and time
 
 ![image](https://github.com/WebFiori/mail/assets/12120015/abe81167-8743-4fd1-ab7a-c16d2bbd1411)
 
-## Setup Testing
+### Testing Modes
 
-When testing the email, we usually intersted on seeing the final look of the email in addition to knowing who are the recepints of the email. The library provides the developer with two options for testing email messages:
-* Storing them as HTML web pages
-* Sending them to specific addresses.
+The library provides two testing modes controlled by `Email::setMode()`:
 
-The two testing modes are controlled by the method `Email::setMode()`. The method is used to set the mode at which the email will use when the method `Email::send` is called.
+#### Store as Web Pages
 
-### Storing as Web Pages
-
-In this case, the mode of sending the message should be set to `SendMode::TEST_STORE`. Additionally, the location at which the message will be stored at must be provided.
-
-``` php
-
-$m = new Email(new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]));
-
-//Here, set the mode to testing and storing.
-$m->setMode(SendMode::TEST_STORE, [
+```php
+$email->setMode(SendMode::TEST_STORE, [
     'store-path' => '/path/to/store/message'
 ]);
 
-
-$m->setSubject('Test Ability to Store Email');
-$m->addTo('ibx@example.com');
-$m->insert('p')->text('Dear,')->setStyle([
-    'font-weight' => 'bold',
-    'font-size' => '15pt'
-]);
-$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
-$m->insert('p')->text('Regards,')->setStyle([
-    'color' => 'green',
-    'font-weight' => 'bold'
-]);
-$m->send();
-
-
+$email->send(); // Stores instead of sending
 ```
 
-### Sending to Test Addresses
+#### Send to Test Addresses
 
-In this case, the mode of sending the message should be set to `SendMode::TEST_SEND`. Additionally, the addresses of the users who will receive the email must be provided.
-
-``` php
-
-$m = new Email(new SMTPAccount([
-    AccountOption::PORT => 465,
-    AccountOption::SERVER_ADDRESS => 'mail.example.com',
-    AccountOption::USERNAME => 'test@example.com',
-    AccountOption::PASSWORD => 'KnvcbxFYCz77',
-    AccountOption::SENDER_NAME => 'Ibrahim',
-    AccountOption::SENDER_ADDRESS => 'test@example.com',
-    AccountOption::NAME => 'no-reply'
-]));
-
-//Here, set the mode to testing and storing.
-$m->setMode(SendMode::TEST_SEND, [
+```php
+$email->setMode(SendMode::TEST_SEND, [
     'send-addresses' => [
         'addr1@example.com',
         'addr2@example.com',
     ]
 ]);
 
-
-$m->setSubject('Test Ability to Store Email');
-$m->addTo('ibx@example.com');
-$m->insert('p')->text('Dear,')->setStyle([
-    'font-weight' => 'bold',
-    'font-size' => '15pt'
-]);
-$m->insert('p')->text('This email is just to inform you that you can store emails as web pages.');
-$m->insert('p')->text('Regards,')->setStyle([
-    'color' => 'green',
-    'font-weight' => 'bold'
-]);
-$m->send();
-
-
+$email->send(); // Sends to test addresses only
 ```
+
+## Examples
+
+Comprehensive examples are available in the [`examples/`](examples/) directory:
+
+- **[Basic Usage](examples/basic-usage/)** - Fundamental email sending and fluent interface
+- **[OAuth Authentication](examples/oauth-usage/)** - Gmail and Microsoft OAuth integration
+- **[File Attachments](examples/attachments/)** - Adding files to emails
+- **[Sending Modes](examples/sending-modes/)** - Test, development, and production configurations
+- **[SMTP Logging](examples/accessing-log/)** - Debugging and monitoring
+- **[Callbacks](examples/callbacks/)** - Before/after send custom logic
+
+## Testing
+
+```bash
+# Install dependencies
+composer install
+
+# Run tests
+composer test
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/WebFiori/mail).
+
+## License
+
+This library is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+## Support
+
+If you encounter any issues, please [open an issue](https://github.com/WebFiori/mail/issues) on GitHub.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
