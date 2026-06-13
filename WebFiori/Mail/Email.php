@@ -355,6 +355,14 @@ class Email {
         return $this->getReceiversStrHelper('bcc');
     }
     /**
+     * Returns the boundary string used to separate email message parts.
+     * 
+     * @return string The boundary string.
+     */
+    public function getBoundary() : string {
+        return $this->boundry;
+    }
+    /**
      * Returns an associative array that contains the names and the addresses 
      * of people who will receive a carbon copy of the message.
      * 
@@ -652,13 +660,15 @@ class Email {
     /**
      * Sends the message.
      * 
-     * @param SMTPServer|null $server An optional external SMTPServer instance to use
-     * for sending. This allows reusing an already-authenticated connection. If null,
-     * a new connection will be created from the SMTPAccount.
+     * @param TransportInterface|SMTPServer|null $transport An optional transport
+     * to use for delivery. Can be:
+     * - A TransportInterface implementation (e.g. SmtpTransport)
+     * - An SMTPServer instance for backward compatibility (reuses connection)
+     * - null to use the default SMTP transport from the configured account
      * 
      * @throws SMTPException
      */
-    public function send(SMTPServer|null $server = null) {
+    public function send(TransportInterface|SMTPServer|null $transport = null) {
         if ($this->isSent()) {
             throw new SMTPException('Message was already sent.');
         }
@@ -703,57 +713,26 @@ class Email {
                     $this->addTo($trimmed);
                 }
             }
-        } 
+        }
 
+        if ($transport instanceof TransportInterface) {
+            $transport->send($this);
+            $this->invokeAfterSend();
+
+            return;
+        }
+
+        // Backward compatibility: SMTPServer instance or null
         $acc = $this->getSMTPAccount();
 
-        if ($server !== null) {
-            $this->smtpServer = $server;
-        }
-        $smtpServer = $this->getSMTPServer();
-
-        if ($this->rcptCount() == 0) {
-            throw new SMTPException('No message recipients.');
+        if ($transport instanceof SMTPServer) {
+            $this->smtpServer = $transport;
         }
 
-        $isExternalServer = $server !== null && $smtpServer->isConnected();
-
-        if ($isExternalServer || $this->authenticate($smtpServer, $acc)) {
-            $smtpServer->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
-
-            $this->receiversCommandHelper('to');
-            $this->receiversCommandHelper('cc');
-            $this->receiversCommandHelper('bcc');
-            $smtpServer->sendCommand('DATA');
-            $importanceHeaderVal = $this->priorityCommandHelper();
-
-            $smtpServer->sendCommand('Importance: '.$importanceHeaderVal);
-            $smtpServer->sendCommand('From: =?UTF-8?B?'.base64_encode($acc->getSenderName()).'?= <'.$acc->getAddress().'>');
-            $smtpServer->sendCommand('To: '.$this->getReceiversStrHelper('to'), false);
-            $smtpServer->sendCommand('CC: '.$this->getReceiversStrHelper('cc'), false);
-            $smtpServer->sendCommand('BCC: '.$this->getReceiversStrHelper('bcc'), false);
-            $smtpServer->sendCommand('Date:'.date('r (T)'));
-            $smtpServer->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($this->getSubject()).'?=');
-            $smtpServer->sendCommand('MIME-Version: 1.0');
-            $smtpServer->sendCommand('Content-Type: multipart/mixed; boundary="'.$this->boundry.'"'.SMTPServer::NL);
-            $smtpServer->sendCommand('--'.$this->boundry);
-            $smtpServer->sendCommand('Content-Type: multipart/alternative; boundary="'.$this->boundry.'-alt"'.SMTPServer::NL);
-            $smtpServer->sendCommand('--'.$this->boundry.'-alt');
-            $smtpServer->sendCommand('Content-Type: text/plain; charset="UTF-8"');
-            $smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
-            $smtpServer->sendCommand($this->getPlainTextBody());
-            $smtpServer->sendCommand('--'.$this->boundry.'-alt');
-            $smtpServer->sendCommand('Content-Type: text/html; charset="UTF-8"');
-            $smtpServer->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
-            $smtpServer->sendCommand($this->trimControlChars($this->getDocument()->toHTML()));
-            $smtpServer->sendCommand('--'.$this->boundry.'-alt--');
-            $this->appendAttachments();
-            $smtpServer->sendCommand(SMTPServer::NL.'.');
-            $smtpServer->sendCommand('QUIT');
-            $this->invokeAfterSend();
-        } else {
-            throw new SMTPException('Unable to login to SMTP server: '.$smtpServer->getLastResponse(), $smtpServer->getLastResponseCode(), $smtpServer->getLog());
-        }
+        $smtpTransport = new SmtpTransport($acc, $this->getSMTPServer());
+        $smtpTransport->send($this);
+        $this->smtpServer = $smtpTransport->getServer();
+        $this->invokeAfterSend();
     }
     /**
      * Sets the display language of the email.
