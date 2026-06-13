@@ -2,7 +2,7 @@
 
 // Create sample files for attachment examples
 
-$sampleDir = __DIR__ . '/sample-files';
+$sampleDir = __DIR__.'/sample-files';
 
 // Create sample-files directory if it doesn't exist
 if (!is_dir($sampleDir)) {
@@ -61,7 +61,7 @@ startxref
 299
 %%EOF";
 
-file_put_contents($sampleDir . '/document.pdf', $pdfContent);
+file_put_contents($sampleDir.'/document.pdf', $pdfContent);
 echo "Created sample document.pdf\n";
 
 // Create sample text file
@@ -79,12 +79,12 @@ Features demonstrated:
 For more information, visit: https://github.com/WebFiori/mail
 ";
 
-file_put_contents($sampleDir . '/readme.txt', $textContent);
+file_put_contents($sampleDir.'/readme.txt', $textContent);
 echo "Created sample readme.txt\n";
 
 // Create a simple image file (1x1 pixel PNG)
 $imageData = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8j8wAAAABJRU5ErkJggg==');
-file_put_contents($sampleDir . '/image.jpg', $imageData);
+file_put_contents($sampleDir.'/image.jpg', $imageData);
 echo "Created sample image.jpg\n";
 
 // Create CSV file
@@ -94,7 +94,7 @@ Jane Smith,jane@example.com,Marketing
 Bob Johnson,bob@example.com,Sales
 Alice Brown,alice@example.com,HR";
 
-file_put_contents($sampleDir . '/contacts.csv', $csvContent);
+file_put_contents($sampleDir.'/contacts.csv', $csvContent);
 echo "Created sample contacts.csv\n";
 
 echo "\nAll sample files created successfully!\n";

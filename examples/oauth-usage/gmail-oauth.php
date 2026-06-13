@@ -2,9 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\AccountOption;
 
 // Configure Gmail OAuth account
 $gmailAccount = new SMTPAccount([
@@ -40,5 +40,5 @@ try {
     $email->send();
     echo "Email sent successfully using OAuth2!\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }

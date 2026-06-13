@@ -2,10 +2,10 @@
 
 require '../../vendor/autoload.php';
 
-use WebFiori\Mail\Email;
-use WebFiori\Mail\SMTPAccount;
 use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\Email;
 use WebFiori\Mail\SendMode;
+use WebFiori\Mail\SMTPAccount;
 
 // Configure SMTP account
 $smtpAccount = new SMTPAccount([
@@ -60,14 +60,13 @@ try {
     $email->send();
     echo "Email sent successfully in test mode!\n";
     echo "Sent to test addresses instead of production recipients.\n";
-    
+
     // Show where the email actually went
     echo "\nTest addresses used:\n";
     echo "- developer@yourcompany.com\n";
     echo "- qa-team@yourcompany.com\n";
-    
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }
 
 // Display current mode

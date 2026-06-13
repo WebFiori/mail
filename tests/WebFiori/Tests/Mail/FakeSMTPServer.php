@@ -8,15 +8,21 @@ namespace WebFiori\Tests\Mail;
 class FakeSMTPServer {
     private int $port;
     private bool $rejectAuth;
+    private bool $greylist;
     private ?int $pid = null;
 
     public function __construct(int $port = 2525) {
         $this->port = $port;
         $this->rejectAuth = false;
+        $this->greylist = false;
     }
 
     public function setRejectAuth(bool $reject): void {
         $this->rejectAuth = $reject;
+    }
+
+    public function setGreylist(bool $greylist): void {
+        $this->greylist = $greylist;
     }
 
     public function getPort(): int {
@@ -29,6 +35,7 @@ class FakeSMTPServer {
     public function start(): void {
         $port = $this->port;
         $rejectAuth = $this->rejectAuth;
+        $greylist = $this->greylist;
 
         $this->pid = pcntl_fork();
 
@@ -38,7 +45,7 @@ class FakeSMTPServer {
 
         if ($this->pid === 0) {
             // Child process - run the server
-            $this->serve($port, $rejectAuth);
+            $this->serve($port, $rejectAuth, $greylist);
             exit(0);
         }
 
@@ -60,7 +67,7 @@ class FakeSMTPServer {
     /**
      * Run the server loop (called in child process).
      */
-    private function serve(int $port, bool $rejectAuth): void {
+    private function serve(int $port, bool $rejectAuth, bool $greylist): void {
         // Handle SIGTERM gracefully
         $running = true;
         pcntl_signal(SIGTERM, function () use (&$running) {
@@ -85,7 +92,7 @@ class FakeSMTPServer {
             $conn = @stream_socket_accept($socket, 1);
 
             if ($conn) {
-                self::handleConnection($conn, $rejectAuth);
+                self::handleConnection($conn, $rejectAuth, $greylist);
                 fclose($conn);
             }
         }
@@ -93,7 +100,7 @@ class FakeSMTPServer {
         fclose($socket);
     }
 
-    private static function handleConnection($conn, bool $rejectAuth): void {
+    private static function handleConnection($conn, bool $rejectAuth, bool $greylist): void {
         stream_set_timeout($conn, 5);
 
         // Send greeting
@@ -101,6 +108,7 @@ class FakeSMTPServer {
 
         $inData = false;
         $messageData = '';
+        $firstRcptDone = false;
 
         while (!feof($conn)) {
             $line = fgets($conn, 4096);
@@ -155,7 +163,12 @@ class FakeSMTPServer {
                     break;
 
                 case 'RCPT':
-                    fwrite($conn, "250 OK\r\n");
+                    if ($greylist && !$firstRcptDone) {
+                        $firstRcptDone = true;
+                        fwrite($conn, "451 Greylisting in effect, please try again later\r\n");
+                    } else {
+                        fwrite($conn, "250 OK\r\n");
+                    }
                     break;
 
                 case 'DATA':

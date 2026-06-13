@@ -2,9 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\AccountOption;
 
 // Configure Microsoft OAuth account
 $microsoftAccount = new SMTPAccount([
@@ -48,5 +48,5 @@ try {
     $email->send();
     echo "Email sent successfully using Microsoft OAuth!\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }

@@ -2,9 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\AccountOption;
 
 // Configure SMTP account
 $smtpAccount = new SMTPAccount([
@@ -39,29 +39,29 @@ $logList->addChild('li')->text('Connection and authentication details');
 
 // Attempt to send email and capture logs
 echo "Attempting to send email...\n";
-echo str_repeat("=", 50) . "\n";
+echo str_repeat("=", 50)."\n";
 
 try {
     $email->send();
     echo "✅ Email sent successfully!\n\n";
 } catch (Exception $e) {
-    echo "❌ Email sending failed: " . $e->getMessage() . "\n\n";
+    echo "❌ Email sending failed: ".$e->getMessage()."\n\n";
 }
 
 // Access and display SMTP logs
 $logs = $email->getLog();
 
 echo "SMTP LOG ANALYSIS\n";
-echo str_repeat("=", 50) . "\n";
-echo "Total log entries: " . count($logs) . "\n\n";
+echo str_repeat("=", 50)."\n";
+echo "Total log entries: ".count($logs)."\n\n";
 
 if (!empty($logs)) {
     foreach ($logs as $index => $logEntry) {
-        echo "Entry #" . ($index + 1) . ":\n";
-        echo "  Command: " . ($logEntry['command'] ?? 'N/A') . "\n";
-        echo "  Response Code: " . ($logEntry['response-code'] ?? 'N/A') . "\n";
-        echo "  Response Message: " . ($logEntry['response-message'] ?? 'N/A') . "\n";
-        echo str_repeat("-", 30) . "\n";
+        echo "Entry #".($index + 1).":\n";
+        echo "  Command: ".($logEntry['command'] ?? 'N/A')."\n";
+        echo "  Response Code: ".($logEntry['response-code'] ?? 'N/A')."\n";
+        echo "  Response Message: ".($logEntry['response-message'] ?? 'N/A')."\n";
+        echo str_repeat("-", 30)."\n";
     }
 } else {
     echo "No SMTP logs available.\n";
@@ -73,7 +73,7 @@ if (!empty($logs)) {
 
 // Analyze logs for common patterns
 echo "\nLOG ANALYSIS\n";
-echo str_repeat("=", 50) . "\n";
+echo str_repeat("=", 50)."\n";
 
 $successCodes = ['220', '250', '354', '221'];
 $authCodes = ['334', '235'];
@@ -85,7 +85,7 @@ $errorCount = 0;
 
 foreach ($logs as $logEntry) {
     $code = $logEntry['response-code'] ?? '';
-    
+
     if (in_array($code, $successCodes)) {
         $successCount++;
     } elseif (in_array($code, $authCodes)) {
@@ -95,32 +95,32 @@ foreach ($logs as $logEntry) {
     }
 }
 
-echo "Success responses: " . $successCount . "\n";
-echo "Authentication responses: " . $authCount . "\n";
-echo "Error responses: " . $errorCount . "\n";
+echo "Success responses: ".$successCount."\n";
+echo "Authentication responses: ".$authCount."\n";
+echo "Error responses: ".$errorCount."\n";
 
 // Save logs to file for later analysis
-$logFile = __DIR__ . '/smtp-logs.txt';
-$logContent = "SMTP Log - " . date('Y-m-d H:i:s') . "\n";
-$logContent .= str_repeat("=", 50) . "\n";
-$logContent .= "Subject: " . $email->getSubject() . "\n";
-$logContent .= "Recipients: " . implode(', ', array_keys($email->getTo())) . "\n";
-$logContent .= "Total Entries: " . count($logs) . "\n\n";
+$logFile = __DIR__.'/smtp-logs.txt';
+$logContent = "SMTP Log - ".date('Y-m-d H:i:s')."\n";
+$logContent .= str_repeat("=", 50)."\n";
+$logContent .= "Subject: ".$email->getSubject()."\n";
+$logContent .= "Recipients: ".implode(', ', array_keys($email->getTo()))."\n";
+$logContent .= "Total Entries: ".count($logs)."\n\n";
 
 foreach ($logs as $index => $logEntry) {
-    $logContent .= "Entry #" . ($index + 1) . ":\n";
-    $logContent .= "  Command: " . ($logEntry['command'] ?? 'N/A') . "\n";
-    $logContent .= "  Code: " . ($logEntry['response-code'] ?? 'N/A') . "\n";
-    $logContent .= "  Message: " . ($logEntry['response-message'] ?? 'N/A') . "\n";
-    $logContent .= str_repeat("-", 30) . "\n";
+    $logContent .= "Entry #".($index + 1).":\n";
+    $logContent .= "  Command: ".($logEntry['command'] ?? 'N/A')."\n";
+    $logContent .= "  Code: ".($logEntry['response-code'] ?? 'N/A')."\n";
+    $logContent .= "  Message: ".($logEntry['response-message'] ?? 'N/A')."\n";
+    $logContent .= str_repeat("-", 30)."\n";
 }
 
 file_put_contents($logFile, $logContent);
-echo "\n📄 Logs saved to: " . $logFile . "\n";
+echo "\n📄 Logs saved to: ".$logFile."\n";
 
 // Display common SMTP response codes for reference
 echo "\nCOMMON SMTP RESPONSE CODES\n";
-echo str_repeat("=", 50) . "\n";
+echo str_repeat("=", 50)."\n";
 $responseCodes = [
     '220' => 'Service ready',
     '221' => 'Service closing transmission channel',
@@ -148,5 +148,5 @@ $responseCodes = [
 ];
 
 foreach ($responseCodes as $code => $description) {
-    echo $code . " - " . $description . "\n";
+    echo $code." - ".$description."\n";
 }

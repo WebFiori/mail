@@ -345,6 +345,7 @@ Comprehensive examples are available in the [`examples/`](examples/) directory:
 - **[Sending Modes](examples/sending-modes/)** - Test, development, and production configurations
 - **[SMTP Logging](examples/accessing-log/)** - Debugging and monitoring
 - **[Callbacks](examples/callbacks/)** - Before/after send custom logic
+- **[Custom Transports](examples/transports/)** - Connection reuse and pluggable transports
 
 ## Testing
 
