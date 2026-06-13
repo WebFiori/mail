@@ -2,9 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\AccountOption;
 
 // Configure SMTP account
 $smtpAccount = new SMTPAccount([
@@ -34,5 +34,5 @@ try {
     $email->send();
     echo "Email sent successfully!\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }

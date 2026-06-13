@@ -2,10 +2,10 @@
 
 require '../../vendor/autoload.php';
 
-use WebFiori\Mail\Email;
-use WebFiori\Mail\SMTPAccount;
 use WebFiori\Mail\AccountOption;
+use WebFiori\Mail\Email;
 use WebFiori\Mail\SendMode;
+use WebFiori\Mail\SMTPAccount;
 
 // Configure SMTP account
 $smtpAccount = new SMTPAccount([
@@ -40,7 +40,8 @@ $list->addChild('li')->text('Debug email content safely');
 $list->addChild('li')->text('No risk of sending test emails to real users');
 
 // Set test mode to store emails as HTML files
-$storageDir = __DIR__ . '/email-previews';
+$storageDir = __DIR__.'/email-previews';
+
 if (!is_dir($storageDir)) {
     mkdir($storageDir, 0755, true);
 }
@@ -54,9 +55,9 @@ try {
     $email->send();
     echo "Email stored successfully in test mode!\n";
     echo "Check the email-previews directory for the HTML file.\n";
-    echo "Storage directory: " . $storageDir . "\n";
+    echo "Storage directory: ".$storageDir."\n";
 } catch (Exception $e) {
-    echo "Failed to store email: " . $e->getMessage() . "\n";
+    echo "Failed to store email: ".$e->getMessage()."\n";
 }
 
 // Display mode information

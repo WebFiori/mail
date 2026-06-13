@@ -2,10 +2,10 @@
 
 require '../../vendor/autoload.php';
 
+use webfiori\file\File;
+use WebFiori\Mail\AccountOption;
 use WebFiori\Mail\Email;
 use WebFiori\Mail\SMTPAccount;
-use WebFiori\Mail\AccountOption;
-use webfiori\file\File;
 
 // Configure SMTP account
 $smtpAccount = new SMTPAccount([
@@ -31,7 +31,8 @@ $email->insert('h2')->text('File Attachments Demo');
 $email->insert('p')->text('This email demonstrates different ways to attach files using WebFiori Mailer.');
 
 // Method 1: Attach file using file path (string)
-$documentPath = __DIR__ . '/sample-files/document.pdf';
+$documentPath = __DIR__.'/sample-files/document.pdf';
+
 if (file_exists($documentPath)) {
     $email->addAttachment($documentPath);
     $email->insert('p')->text('✅ Attached: document.pdf (using file path)');
@@ -40,7 +41,8 @@ if (file_exists($documentPath)) {
 }
 
 // Method 2: Attach file using File object
-$imagePath = __DIR__ . '/sample-files/image.jpg';
+$imagePath = __DIR__.'/sample-files/image.jpg';
+
 if (file_exists($imagePath)) {
     $imageFile = new File($imagePath);
     $email->addAttachment($imageFile);
@@ -50,7 +52,8 @@ if (file_exists($imagePath)) {
 }
 
 // Method 3: Using fluent interface
-$textPath = __DIR__ . '/sample-files/readme.txt';
+$textPath = __DIR__.'/sample-files/readme.txt';
+
 if (file_exists($textPath)) {
     $email->attach($textPath);
     $email->insert('p')->text('✅ Attached: readme.txt (using fluent interface)');
@@ -62,12 +65,13 @@ if (file_exists($textPath)) {
 $attachments = $email->getAttachments();
 $email->insert('hr');
 $email->insert('h3')->text('Attachment Summary');
-$email->insert('p')->text('Total attachments: ' . count($attachments));
+$email->insert('p')->text('Total attachments: '.count($attachments));
 
 if (!empty($attachments)) {
     $list = $email->insert('ul');
+
     foreach ($attachments as $attachment) {
-        $list->addChild('li')->text($attachment->getName() . ' (' . $attachment->getSize() . ' bytes)');
+        $list->addChild('li')->text($attachment->getName().' ('.$attachment->getSize().' bytes)');
     }
 }
 
@@ -75,7 +79,7 @@ if (!empty($attachments)) {
 try {
     $email->send();
     echo "Email with attachments sent successfully!\n";
-    echo "Total attachments: " . count($attachments) . "\n";
+    echo "Total attachments: ".count($attachments)."\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }

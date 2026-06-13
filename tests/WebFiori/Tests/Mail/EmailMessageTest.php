@@ -725,4 +725,47 @@ class EmailMessageTest extends TestCase {
         $commands = array_column($log, 'command');
         $this->assertTrue(in_array('RSET', $commands), 'RSET should have been sent for greylisting retry');
     }
+
+    /**
+     * @test
+     * Tests sending via SmtpTransport directly.
+     */
+    public function testSendViaSmtpTransport() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $transport = new \WebFiori\Mail\SmtpTransport($account);
+
+        $message = new Email($account);
+        $message->setSubject('Transport Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Sent via SmtpTransport.');
+        $message->send($transport);
+
+        $this->assertTrue($message->isSent());
+        $lastLog = $transport->getServer()->getLastLogEntry();
+        $this->assertEquals('QUIT', $lastLog['command']);
+        $this->assertEquals(221, $lastLog['code']);
+    }
+
+    /**
+     * @test
+     * Tests sending via a custom TransportInterface implementation.
+     */
+    public function testSendViaCustomTransport() {
+        $nullTransport = new class implements \WebFiori\Mail\TransportInterface {
+            public array $sent = [];
+            public function send(\WebFiori\Mail\Email $message): void { $this->sent[] = $message; }
+            public function getName(): string { return 'null'; }
+        };
+
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $message->setSubject('Null Transport Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Not actually sent.');
+        $message->send($nullTransport);
+
+        $this->assertTrue($message->isSent());
+        $this->assertCount(1, $nullTransport->sent);
+        $this->assertSame($message, $nullTransport->sent[0]);
+    }
 }
