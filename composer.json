@@ -12,7 +12,7 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1",
-        "webfiori/file": "2.0.*",
+        "webfiori/file": "2.1.*",
         "webfiori/ui": "4.0.*"
     },
     "require-dev": {
