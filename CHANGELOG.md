@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.2.0](https://github.com/WebFiori/mail/compare/v2.1.1...v2.2.0) (2026-06-13)
+
+
+### Features
+
+* Add SMTP enhancements for connection reuse, multipart/alternative, and greylisting retry ([ebb9ec2](https://github.com/WebFiori/mail/commit/ebb9ec2ed2f1ba72346c2424f0b4339ca349333b))
+* Add TransportInterface and SmtpTransport ([b8fdc83](https://github.com/WebFiori/mail/commit/b8fdc832cd659f4a79feda5a3cd3c320191a0afc))
+* Add TransportInterface and SmtpTransport ([a53c1e9](https://github.com/WebFiori/mail/commit/a53c1e9bdb66516ba39550509bdd8f2be9872f5b))
+* SMTP enhancements for connection reuse, multipart/alternative, and greylisting retry ([d6460f2](https://github.com/WebFiori/mail/commit/d6460f20b73a755a1a33cdea88cc71ab13f5f77b))
+* v2.2.0 — Transport abstraction, SMTP enhancements, and README overhaul ([8f398d6](https://github.com/WebFiori/mail/commit/8f398d64ae23d1ce597884d19aef27eb1c2ec6e4))
+
+
+### Miscellaneous Chores
+
+* Add license header to new files ([4216b23](https://github.com/WebFiori/mail/commit/4216b23f660d75933603adbfc4b8192777cf3cb7))
+* Correcting License Headers ([ae3d154](https://github.com/WebFiori/mail/commit/ae3d15402075e78f4d2b69cc068093cd973724a4))
+* File Bump-up ([03faed1](https://github.com/WebFiori/mail/commit/03faed1a7bd5b4202a52880200de933a82c3affc))
+
 ## [2.1.1](https://github.com/WebFiori/mail/compare/v2.1.0...v2.1.1) (2026-06-02)
 
 
