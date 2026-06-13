@@ -29,6 +29,7 @@ A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP s
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php84.yaml/badge.svg?branch=main"></a>  |
 
 ## In This Page:
+* [Motivation](#motivation)
 * [Installation](#installation)
 * [Examples](#examples)
 * [Usage](#usage)
@@ -48,6 +49,45 @@ A powerful and easy-to-use PHP library for sending HTML-based emails with SMTP s
 * [Accessing SMTP Log](#accessing-smtp-log)
 * [Storing Email](#storing-email)
 * [Setup Testing](#setup-testing)
+
+## Motivation
+
+### HTML-First Composition
+
+Most mailing libraries treat the email body as a string you pass in. WebFiori Mailer treats emails as **HTML documents you build** using a virtual DOM. You compose emails the same way you'd build a web page — inserting elements, nesting children, setting styles programmatically:
+
+```php
+$div = $email->insert('div');
+$div->addChild('p')->text('Hello!');
+$div->addChild('p', ['style' => ['color' => 'red']])->text('Important message.');
+```
+
+No raw HTML strings. No template engine required (though templates are supported too).
+
+### Minimal Dependencies
+
+The library relies only on two lightweight packages (`webfiori/ui` for DOM building and `webfiori/file` for attachments). The SMTP layer is built directly on PHP sockets. No heavy third-party dependencies to keep up with.
+
+### Built-in Testing Modes
+
+Testing emails shouldn't require actually sending them or setting up third-party services:
+
+- **Store mode** — Renders the email as a local HTML file for visual inspection, complete with headers metadata.
+- **Test send mode** — Redirects messages to specified test addresses regardless of the actual recipients.
+
+Switch between modes with a single call:
+
+```php
+$email->setMode(SendMode::TEST_STORE, ['store-path' => '/tmp/emails']);
+```
+
+### SMTP Transparency
+
+Every command sent to the SMTP server is logged with its response code and message. When something fails, you see exactly what happened at the protocol level — no black-box debugging.
+
+### Lightweight and Self-Contained
+
+The entire library is a handful of classes. If all you need is to send HTML emails over SMTP without pulling in a large framework or dozens of transitive dependencies, this gets the job done.
 
 ## Installation
 
