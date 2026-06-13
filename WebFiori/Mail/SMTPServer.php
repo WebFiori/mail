@@ -401,6 +401,26 @@ class SMTPServer {
         return false;
     }
     /**
+     * Sends RSET command to the SMTP server to reset the current session.
+     *
+     * This allows the connection to be reused for sending another message
+     * without having to disconnect and reconnect.
+     *
+     * @return bool True if the server responded with 250, false otherwise.
+     *
+     * @throws SMTPException
+     */
+    public function reset() : bool {
+        if (!$this->isConnected()) {
+            return false;
+        }
+        // Clear error state so sendCommand does not throw
+        $this->lastResponseCode = 0;
+        $this->sendCommand('RSET');
+
+        return $this->getLastResponseCode() == 250;
+    }
+    /**
      * Sets the timeout time of the connection.
      * 
      * @param int $val The value of timeout (in minutes). The timeout will be updated 
