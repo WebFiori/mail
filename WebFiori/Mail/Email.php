@@ -282,6 +282,44 @@ class Email {
         return $this->addAddressHelper($address, $name, 'to');
     }
     /**
+     * Adds an attachment to the email message.
+     * 
+     * @param string|File $fileObjOrFilePath Either a file path as string or a File object.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function attach($fileObjOrFilePath): Email {
+        $this->addAttachment($fileObjOrFilePath);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'BCC' (Blind Carbon Copy) field of the email message.
+     * 
+     * @param string $address The email address of the BCC recipient.
+     * @param string|null $name Optional display name for the BCC recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function bcc(string $address, ?string $name = null): Email {
+        $this->addBCC($address, $name);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'CC' (Carbon Copy) field of the email message.
+     * 
+     * @param string $address The email address of the CC recipient.
+     * @param string|null $name Optional display name for the CC recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function cc(string $address, ?string $name = null): Email {
+        $this->addCC($address, $name);
+
+        return $this;
+    }
+    /**
      * Returns an array that contains the information of all added attachments.
      * 
      * @return array An array that contains the information of all added attachments.
@@ -586,6 +624,18 @@ class Email {
     public function isSent() : bool {
         return $this->isSent;
     }
+    /**
+     * Sets the priority level of the email message.
+     * 
+     * @param int $messagePriority The priority level (-1 for low, 0 for normal, 1 for high).
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function priority(int $messagePriority): Email {
+        $this->setPriority($messagePriority);
+
+        return $this;
+    }
     public function rcptCount() : int {
         return count($this->getCC()) + count($this->getBCC()) + count($this->getTo());
     }
@@ -839,6 +889,31 @@ class Email {
         $file = new File($folderPath.DIRECTORY_SEPARATOR.$name.DIRECTORY_SEPARATOR.date('Y-m-d H-i-s').'.html');
         $file->setRawData($this->getDocument()->toHTML(true).'');
         $file->write(false, true);
+    }
+    /**
+     * Sets the subject of the email message.
+     * 
+     * @param string $subject The subject line of the email.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function subject(string $subject): Email {
+        $this->setSubject($subject);
+
+        return $this;
+    }
+    /**
+     * Adds a recipient to the 'TO' field of the email message.
+     * 
+     * @param string $address The email address of the recipient.
+     * @param string|null $name Optional display name for the recipient.
+     * 
+     * @return Email Returns the current Email instance for method chaining.
+     */
+    public function to(string $address, ?string $name = null): Email {
+        $this->addTo($address, $name);
+
+        return $this;
     }    
     private function addAddressHelper(string $address, string|null $name = null, string $type = 'to') : bool {
         if ($name === null || strlen(trim($name)) == 0) {
@@ -899,6 +974,20 @@ class Email {
         }
 
         return $server->authLogin($account->getUsername(), $account->getPassword());
+    }
+    /**
+     * Extracts a plain text version of the email body from the HTML document.
+     * 
+     * @return string Plain text representation of the email body.
+     */
+    private function getPlainTextBody() : string {
+        $html = $this->getDocument()->getBody()->toHTML();
+        $text = strip_tags($html);
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+        $text = preg_replace("/[ \t]+/", ' ', $text);
+        $text = preg_replace("/\n\s*\n+/", "\n\n", $text);
+
+        return trim($text);
     }
     private function getReceiversStrHelper(string $type, bool $encode = true) : string {
         $arr = [];
@@ -1003,88 +1092,5 @@ class Email {
 
         //Removes any invalid line feed.
         return preg_replace("/(\s*[\r\n]+\s*|\s+)/", ' ', $trimmed);
-    }
-    /**
-     * Extracts a plain text version of the email body from the HTML document.
-     * 
-     * @return string Plain text representation of the email body.
-     */
-    private function getPlainTextBody() : string {
-        $html = $this->getDocument()->getBody()->toHTML();
-        $text = strip_tags($html);
-        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-        $text = preg_replace("/[ \t]+/", ' ', $text);
-        $text = preg_replace("/\n\s*\n+/", "\n\n", $text);
-
-        return trim($text);
-    }
-    /**
-     * Adds a recipient to the 'TO' field of the email message.
-     * 
-     * @param string $address The email address of the recipient.
-     * @param string|null $name Optional display name for the recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function to(string $address, ?string $name = null): Email {
-        $this->addTo($address, $name);
-        return $this;
-    }
-    /**
-     * Adds a recipient to the 'CC' (Carbon Copy) field of the email message.
-     * 
-     * @param string $address The email address of the CC recipient.
-     * @param string|null $name Optional display name for the CC recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function cc(string $address, ?string $name = null): Email {
-        $this->addCC($address, $name);
-        return $this;
-    }
-    /**
-     * Adds a recipient to the 'BCC' (Blind Carbon Copy) field of the email message.
-     * 
-     * @param string $address The email address of the BCC recipient.
-     * @param string|null $name Optional display name for the BCC recipient.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function bcc(string $address, ?string $name = null): Email {
-        $this->addBCC($address, $name);
-        return $this;
-    }
-    /**
-     * Sets the subject of the email message.
-     * 
-     * @param string $subject The subject line of the email.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function subject(string $subject): Email {
-        $this->setSubject($subject);
-        return $this;
-    }
-    /**
-     * Adds an attachment to the email message.
-     * 
-     * @param string|File $fileObjOrFilePath Either a file path as string or a File object.
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function attach($fileObjOrFilePath): Email {
-        $this->addAttachment($fileObjOrFilePath);
-        return $this;
-    }
-    /**
-     * Sets the priority level of the email message.
-     * 
-     * @param int $messagePriority The priority level (-1 for low, 0 for normal, 1 for high).
-     * 
-     * @return Email Returns the current Email instance for method chaining.
-     */
-    public function priority(int $messagePriority): Email {
-        $this->setPriority($messagePriority);
-        return $this;
     }
 }
