@@ -158,12 +158,12 @@ class SmtpTransport implements TransportInterface {
         $server->sendCommand('Content-Type: multipart/alternative; boundary="'.$boundary.'-alt"'.SMTPServer::NL);
         $server->sendCommand('--'.$boundary.'-alt');
         $server->sendCommand('Content-Type: text/plain; charset="UTF-8"');
-        $server->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
-        $server->sendCommand($this->getPlainTextBody($message));
+        $server->sendCommand('Content-Transfer-Encoding: base64'.SMTPServer::NL);
+        $server->sendCommand(chunk_split(base64_encode($this->getPlainTextBody($message))));
         $server->sendCommand('--'.$boundary.'-alt');
         $server->sendCommand('Content-Type: text/html; charset="UTF-8"');
-        $server->sendCommand('Content-Transfer-Encoding: quoted-printable'.SMTPServer::NL);
-        $server->sendCommand($this->trimControlChars($message->getDocument()->toHTML()));
+        $server->sendCommand('Content-Transfer-Encoding: base64'.SMTPServer::NL);
+        $server->sendCommand(chunk_split(base64_encode($message->getDocument()->toHTML())));
         $server->sendCommand('--'.$boundary.'-alt--');
     }
 
