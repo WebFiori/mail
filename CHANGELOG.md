@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.1](https://github.com/WebFiori/mail/compare/v2.2.0...v2.2.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **smtp:** use base64 encoding for email body parts ([18185e8](https://github.com/WebFiori/mail/commit/18185e83a3f907197dbc802505ca0a55cc2cd2fb))
+* **smtp:** use base64 encoding for email body parts ([cb17c1c](https://github.com/WebFiori/mail/commit/cb17c1cedab9a6eabeeca76e3186c18d185c59d9))
+
 ## [2.2.0](https://github.com/WebFiori/mail/compare/v2.1.1...v2.2.0) (2026-06-13)
 
 
