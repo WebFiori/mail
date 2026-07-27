@@ -174,6 +174,64 @@ class EmailMessageTest extends TestCase {
 
     /**
      * @test
+     * Invalid addresses are rejected by addTo/addCC/addBCC.
+     */
+    public function testInvalidAddressRejected() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        // Clearly invalid
+        $this->assertFalse($sm->addTo('not-an-email'));
+        $this->assertFalse($sm->addTo('missing-at-sign'));
+        $this->assertFalse($sm->addTo('@nodomain.com'));
+        $this->assertFalse($sm->addTo('user@'));
+        $this->assertFalse($sm->addTo('user@.com'));
+        $this->assertFalse($sm->addTo('plain-text'));
+
+        // Same for CC and BCC
+        $this->assertFalse($sm->addCC('not-an-email'));
+        $this->assertFalse($sm->addBCC('not-an-email'));
+
+        // Nothing should have been added
+        $this->assertCount(0, $sm->getTo());
+        $this->assertCount(0, $sm->getCC());
+        $this->assertCount(0, $sm->getBCC());
+    }
+
+    /**
+     * @test
+     * Valid addresses are accepted.
+     */
+    public function testValidAddressAccepted() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        $this->assertTrue($sm->addTo('user@example.com'));
+        $this->assertTrue($sm->addTo('user.name+tag@sub.example.co.uk'));
+        $this->assertTrue($sm->addTo('user123@example.org'));
+        $this->assertTrue($sm->addCC('cc@example.com'));
+        $this->assertTrue($sm->addBCC('bcc@example.com'));
+
+        $this->assertCount(3, $sm->getTo());
+        $this->assertCount(1, $sm->getCC());
+        $this->assertCount(1, $sm->getBCC());
+    }
+
+    /**
+     * @test
+     * Unicode local parts are rejected until SMTPUTF8 is implemented (#69).
+     */
+    public function testUnicodeLocalPartRejected() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        $this->assertFalse($sm->addTo('用户@example.com'));
+        $this->assertFalse($sm->addTo('θσερ@example.com'));
+        $this->assertCount(0, $sm->getTo());
+    }
+
+    /**
+     * @test
      */
     public function testBeforeSend00() {
         $account = new SMTPAccount($this->getValidAccount());

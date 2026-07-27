@@ -192,12 +192,13 @@ class Email {
      * Adds new receiver address to the list of 'bcc' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string|null $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addBCC(string $address, string|null $name = null): bool {
@@ -229,12 +230,13 @@ class Email {
      * Adds new receiver address to the list of 'cc' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addCC(string $address, string|null $name = null) : bool {
@@ -272,12 +274,13 @@ class Email {
      * Adds new receiver address to the list of 'to' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addTo(string $address, string|null $name = null) : bool {
@@ -962,7 +965,7 @@ class Email {
             $nameTrimmed = $addressTrimmed;
         }
 
-        if (strlen($addressTrimmed) != 0 && in_array($type, ['cc', 'bcc', 'to'])) {
+        if (filter_var($addressTrimmed, FILTER_VALIDATE_EMAIL) !== false && in_array($type, ['cc', 'bcc', 'to'])) {
             $this->receiversArr[$type][$addressTrimmed] = $nameTrimmed;
 
             return true;
