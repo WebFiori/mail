@@ -33,20 +33,14 @@ class AccountOption {
      */
     const ALLOW_SELF_SIGNED = 'allow-self-signed';
     /**
+     * An option which is used to set the maximum number of times to retry
+     * a failed connection before giving up. Defaults to 3.
+     */
+    const MAX_RETRIES = 'max-retries';
+    /**
      * An option which is used to set a unique name for the account.
      */
     const NAME = 'account-name';
-    /**
-     * An option which is used to enable or disable SSL/TLS peer verification.
-     *
-     * When set to false, the SSL certificate presented by the server will not
-     * be verified. This disables both verify_peer and verify_peer_name, making
-     * the connection vulnerable to man-in-the-middle attacks.
-     *
-     * Defaults to true. Only set this to false in controlled environments
-     * where SSL verification is not possible.
-     */
-    const VERIFY_SSL = 'verify-ssl';
     /**
      * An option which is used to set the password of the account.
      */
@@ -56,12 +50,18 @@ class AccountOption {
      */
     const PORT = 'port';
     /**
-     * An option which is used to set the address that will appear when the 
+     * An option which is used to set the base delay in seconds between
+     * connection retry attempts. The actual delay doubles on each attempt
+     * (exponential backoff). Defaults to 1.
+     */
+    const RETRY_DELAY = 'retry-delay';
+    /**
+     * An option which is used to set the address that will appear when the
      * message is sent. Usually, it is the same as the username.
      */
     const SENDER_ADDRESS = 'sender-address';
     /**
-     * An option which is used to set the name of the sender that will appear when the 
+     * An option which is used to set the name of the sender that will appear when the
      * message is sent.
      */
     const SENDER_NAME = 'sender-name';
@@ -73,4 +73,15 @@ class AccountOption {
      * An option which is used to set the username at which it is used to log in to SMTP server.
      */
     const USERNAME = 'user';
+    /**
+     * An option which is used to enable or disable SSL/TLS peer verification.
+     *
+     * When set to false, the SSL certificate presented by the server will not
+     * be verified. This disables both verify_peer and verify_peer_name, making
+     * the connection vulnerable to man-in-the-middle attacks.
+     *
+     * Defaults to true. Only set this to false in controlled environments
+     * where SSL verification is not possible.
+     */
+    const VERIFY_SSL = 'verify-ssl';
 }

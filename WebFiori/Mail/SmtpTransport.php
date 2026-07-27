@@ -61,7 +61,9 @@ class SmtpTransport implements TransportInterface {
                 $this->account->getServerAddress(),
                 $this->account->getPort(),
                 $this->account->isVerifySsl(),
-                $this->account->isAllowSelfSigned()
+                $this->account->isAllowSelfSigned(),
+                $this->account->getMaxRetries(),
+                $this->account->getRetryBaseDelay()
             );
         }
 

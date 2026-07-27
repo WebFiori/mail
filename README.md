@@ -287,6 +287,32 @@ $account = new SMTPAccount([
 
 See the [SSL configuration example](examples/basic-usage/ssl-configuration.php) for a full demonstration.
 
+### Connection Retry and Timeout
+
+Failed connections are automatically retried with exponential backoff. The read timeout applies to every `fgets()` call after the connection is established, preventing indefinite hangs when a server becomes unresponsive mid-session.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `AccountOption::MAX_RETRIES` | `3` | Number of reconnect attempts after failure |
+| `AccountOption::RETRY_DELAY` | `1` | Base delay in seconds between attempts (doubles each retry) |
+
+Backoff schedule with defaults: attempt 1 immediate, attempt 2 waits 1s, attempt 3 waits 2s, attempt 4 waits 4s.
+
+```php
+$account = new SMTPAccount([
+    // ...
+    AccountOption::MAX_RETRIES => 5,  // retry up to 5 times
+    AccountOption::RETRY_DELAY => 2,  // backoff: 2s, 4s, 8s, 16s, 32s
+]);
+
+// Disable retries entirely:
+$account->setMaxRetries(0);
+```
+
+> **Note:** Retries only apply to TCP connection establishment. A `SMTPException` thrown during `read()` due to a timeout means the session state is unknown and cannot be safely retried in place — the caller should reconnect from scratch.
+
+> See [ADR-0032](https://github.com/WebFiori/docs/blob/main/adr/0032-smtp-timeout-and-retry-backoff.md) for the full design rationale.
+
 ### Attachments
 
 Attachments can be added using `Email::addAttachment()`. The parameter can be a file path string or an object of type `webfiori\file\File`.

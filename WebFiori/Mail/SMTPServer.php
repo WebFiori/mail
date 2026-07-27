@@ -66,6 +66,18 @@ class SMTPServer {
      */
     private bool $allowSelfSigned;
     /**
+     * Maximum number of connection retry attempts.
+     *
+     * @var int
+     */
+    private int $maxRetries;
+    /**
+     * Base delay in seconds between retry attempts.
+     *
+     * @var int
+     */
+    private int $retryBaseDelay;
+    /**
      * Whether to verify SSL/TLS peer certificate.
      *
      * @var bool
@@ -83,8 +95,12 @@ class SMTPServer {
      *
      * @param bool $allowSelfSigned Whether to allow self-signed certificates.
      * Only meaningful when $verifySsl is true. Defaults to false.
+     *
+     * @param int $maxRetries Maximum number of connection retry attempts. Defaults to 3.
+     *
+     * @param int $retryBaseDelay Base delay in seconds between retries (doubles each attempt). Defaults to 1.
      */
-    public function __construct(string $serverAddress, int $port, bool $verifySsl = true, bool $allowSelfSigned = false) {
+    public function __construct(string $serverAddress, int $port, bool $verifySsl = true, bool $allowSelfSigned = false, int $maxRetries = 3, int $retryBaseDelay = 1) {
         $this->serverPort = $port;
         $this->serverHost = $serverAddress;
         $this->serverOptions = [];
@@ -95,6 +111,8 @@ class SMTPServer {
         $this->responseLog = [];
         $this->verifySsl = $verifySsl;
         $this->allowSelfSigned = $allowSelfSigned;
+        $this->maxRetries = $maxRetries;
+        $this->retryBaseDelay = $retryBaseDelay;
     }
 
     /**
@@ -162,19 +180,34 @@ class SMTPServer {
      * @throws SMTPException
      */
     public function connect() : bool {
-        $retVal = true;
+        if ($this->isConnected()) {
+            return true;
+        }
 
-        if (!$this->isConnected()) {
+        $transport = $this->getTransport();
+        $lastException = null;
+
+        for ($attempt = 0; $attempt <= $this->maxRetries; $attempt++) {
+            if ($attempt > 0) {
+                $delay = $this->retryBaseDelay * (2 ** ($attempt - 1));
+                $this->_log('Connect', 0, 'Connection failed, retrying in '.$delay.'s (attempt '.$attempt.'/'.$this->maxRetries.')...');
+                sleep($delay);
+            }
+
             set_error_handler(null);
-            $transport = $this->getTransport();
-
             $this->serverCon = $this->_tryConnect($transport);
 
             if ($this->serverCon === false) {
                 $this->serverCon = $this->_tryConnect('');
             }
+            restore_error_handler();
 
-            if (is_resource($this->serverCon)) {
+            if (!is_resource($this->serverCon)) {
+                continue;
+            }
+
+            // Connection established — session-level errors are not retried
+            try {
                 $this->_log('-', 0, $this->read());
 
                 if ($this->getLastResponseCode() != 220) {
@@ -184,18 +217,17 @@ class SMTPServer {
                 }
 
                 if ($this->sendHello()) {
-                    //We might need to switch to secure connection.
-                    $retVal = $this->checkStartTls();
-                } else {
-                    $retVal = false;
+                    return $this->checkStartTls();
                 }
-            } else {
-                $retVal = false;
+
+                return false;
+            } catch (SMTPException $e) {
+                $lastException = $e;
+                throw $e;
             }
-            restore_error_handler();
         }
 
-        return $retVal;
+        return false;
     }
     /**
      * Returns SMTP server host address.
@@ -333,6 +365,16 @@ class SMTPServer {
 
         while (!feof($this->serverCon)) {
             $str = fgets($this->serverCon);
+            $meta = stream_get_meta_data($this->serverCon);
+
+            if ($meta['timed_out']) {
+                $this->_log('-', 0, 'SMTP read timed out after '.($this->responseTimeout * 60).'s.');
+                throw new SMTPException(
+                    'SMTP read timed out after '.($this->responseTimeout * 60).'s waiting for server response.',
+                    0,
+                    $this->getLog()
+                );
+            }
 
             if ($str !== false) {
                 $message .= $str;
@@ -508,6 +550,7 @@ class SMTPServer {
             }
         } else {
             $this->_log('Connect', 0, 'Connection opened.');
+            stream_set_timeout($conn, $this->responseTimeout * 60);
         }
 
         return $conn;

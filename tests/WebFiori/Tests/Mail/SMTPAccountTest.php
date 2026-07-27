@@ -195,4 +195,63 @@ class SMTPAccountTest extends TestCase {
         $this->assertTrue($acc->isVerifySsl());
         $this->assertTrue($acc->isAllowSelfSigned());
     }
+    /**
+     * @test
+     */
+    public function testMaxRetriesDefaultsToThree() {
+        $acc = new SMTPAccount();
+        $this->assertSame(3, $acc->getMaxRetries());
+    }
+    /**
+     * @test
+     */
+    public function testRetryBaseDelayDefaultsToOne() {
+        $acc = new SMTPAccount();
+        $this->assertSame(1, $acc->getRetryBaseDelay());
+    }
+    /**
+     * @test
+     */
+    public function testMaxRetriesViaConstructor() {
+        $acc = new SMTPAccount([AccountOption::MAX_RETRIES => 5]);
+        $this->assertSame(5, $acc->getMaxRetries());
+    }
+    /**
+     * @test
+     */
+    public function testRetryDelayViaConstructor() {
+        $acc = new SMTPAccount([AccountOption::RETRY_DELAY => 2]);
+        $this->assertSame(2, $acc->getRetryBaseDelay());
+    }
+    /**
+     * @test
+     */
+    public function testMaxRetriesSetterGetter() {
+        $acc = new SMTPAccount();
+        $acc->setMaxRetries(0);
+        $this->assertSame(0, $acc->getMaxRetries());
+        $acc->setMaxRetries(10);
+        $this->assertSame(10, $acc->getMaxRetries());
+        // Negative values are ignored
+        $acc->setMaxRetries(-1);
+        $this->assertSame(10, $acc->getMaxRetries());
+    }
+    /**
+     * @test
+     */
+    public function testRetryDelaySetterGetter() {
+        $acc = new SMTPAccount();
+        $acc->setRetryBaseDelay(3);
+        $this->assertSame(3, $acc->getRetryBaseDelay());
+        // Values less than 1 are ignored
+        $acc->setRetryBaseDelay(0);
+        $this->assertSame(3, $acc->getRetryBaseDelay());
+    }
+    /**
+     * @test
+     */
+    public function testZeroRetriesDisablesRetry() {
+        $acc = new SMTPAccount([AccountOption::MAX_RETRIES => 0]);
+        $this->assertSame(0, $acc->getMaxRetries());
+    }
 }

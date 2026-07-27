@@ -68,8 +68,51 @@ echo "verify_ssl:        " . ($insecureAccount->isVerifySsl() ? 'true' : 'false'
 echo "allow_self_signed: " . ($insecureAccount->isAllowSelfSigned() ? 'true' : 'false') . "\n\n";
 
 // -------------------------------------------------------------------------
+// Example 4: Custom retry and timeout configuration
+// -------------------------------------------------------------------------
+// By default, failed connections are retried up to 3 times with exponential
+// backoff starting at 1 second (1s, 2s, 4s). You can tune this per-account.
+$reliableAccount = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => 'your-email@gmail.com',
+    AccountOption::PASSWORD       => 'your-app-password',
+    AccountOption::SENDER_ADDRESS => 'your-email@gmail.com',
+    AccountOption::SENDER_NAME    => 'Your Name',
+    AccountOption::MAX_RETRIES    => 5,   // retry up to 5 times
+    AccountOption::RETRY_DELAY    => 2,   // backoff: 2s, 4s, 8s, 16s, 32s
+]);
+
+echo "max_retries:  " . $reliableAccount->getMaxRetries() . "\n";
+echo "retry_delay:  " . $reliableAccount->getRetryBaseDelay() . "s base\n\n";
+
+// You can also disable retries entirely:
+$noRetryAccount = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp.example.com',
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => 'user@example.com',
+    AccountOption::PASSWORD       => 'secret',
+    AccountOption::SENDER_ADDRESS => 'user@example.com',
+    AccountOption::SENDER_NAME    => 'Example',
+    AccountOption::MAX_RETRIES    => 0,  // fail immediately, no retries
+]);
+
+echo "max_retries:  " . $noRetryAccount->getMaxRetries() . " (disabled)\n\n";
+
+// -------------------------------------------------------------------------
 // Sending with any of the accounts above works the same way
 // -------------------------------------------------------------------------
+$email = new Email($secureAccount);
+$email->setSubject('SSL Configuration Demo');
+$email->addTo('recipient@example.com', 'Recipient');
+$email->insert('p')->text('This email was sent with full SSL peer verification enabled.');
+
+try {
+    $email->send();
+    echo "Email sent successfully.\n";
+} catch (Exception $e) {
+    echo "Failed to send email: " . $e->getMessage() . "\n";
+}
 $email = new Email($secureAccount);
 $email->setSubject('SSL Configuration Demo');
 $email->addTo('recipient@example.com', 'Recipient');

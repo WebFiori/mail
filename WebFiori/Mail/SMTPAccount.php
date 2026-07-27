@@ -21,6 +21,18 @@ class SMTPAccount {
      */
     private bool $allowSelfSigned = false;
     /**
+     * Maximum number of connection retry attempts.
+     *
+     * @var int
+     */
+    private int $maxRetries = 3;
+    /**
+     * Base delay in seconds between retry attempts (doubles each attempt).
+     *
+     * @var int
+     */
+    private int $retryBaseDelay = 1;
+    /**
      * Whether to verify SSL/TLS peer certificate.
      *
      * @var bool
@@ -148,6 +160,14 @@ class SMTPAccount {
         if (isset($options[AccountOption::ALLOW_SELF_SIGNED])) {
             $this->setAllowSelfSigned((bool) $options[AccountOption::ALLOW_SELF_SIGNED]);
         }
+
+        if (isset($options[AccountOption::MAX_RETRIES])) {
+            $this->setMaxRetries((int) $options[AccountOption::MAX_RETRIES]);
+        }
+
+        if (isset($options[AccountOption::RETRY_DELAY])) {
+            $this->setRetryBaseDelay((int) $options[AccountOption::RETRY_DELAY]);
+        }
     }
     /**
      * Returns the OAuth access token.
@@ -172,6 +192,22 @@ class SMTPAccount {
      */
     public function isVerifySsl(): bool {
         return $this->verifySsl;
+    }
+    /**
+     * Returns the maximum number of connection retry attempts.
+     *
+     * @return int
+     */
+    public function getMaxRetries(): int {
+        return $this->maxRetries;
+    }
+    /**
+     * Returns the base delay in seconds between connection retry attempts.
+     *
+     * @return int
+     */
+    public function getRetryBaseDelay(): int {
+        return $this->retryBaseDelay;
     }
     /**
      * Returns the name of the account.
@@ -252,6 +288,31 @@ class SMTPAccount {
      */
     public function setAllowSelfSigned(bool $allow): void {
         $this->allowSelfSigned = $allow;
+    }
+    /**
+     * Sets the maximum number of times to retry a failed connection.
+     *
+     * Must be zero or greater. Zero means no retries (fail immediately).
+     *
+     * @param int $retries Number of retry attempts.
+     */
+    public function setMaxRetries(int $retries): void {
+        if ($retries >= 0) {
+            $this->maxRetries = $retries;
+        }
+    }
+    /**
+     * Sets the base delay in seconds between connection retry attempts.
+     *
+     * The actual delay doubles on each attempt (exponential backoff).
+     * Must be one or greater.
+     *
+     * @param int $seconds Base delay in seconds.
+     */
+    public function setRetryBaseDelay(int $seconds): void {
+        if ($seconds >= 1) {
+            $this->retryBaseDelay = $seconds;
+        }
     }
     /**
      * Sets whether to verify the SSL/TLS peer certificate.
