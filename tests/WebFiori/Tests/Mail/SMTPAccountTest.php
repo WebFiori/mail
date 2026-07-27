@@ -129,4 +129,70 @@ class SMTPAccountTest extends TestCase {
         $acc->setAccessToken(null);
         $this->assertNull($acc->getAccessToken());
     }
+    /**
+     * @test
+     */
+    public function testVerifySslDefaultsToTrue() {
+        $acc = new SMTPAccount();
+        $this->assertTrue($acc->isVerifySsl());
+    }
+    /**
+     * @test
+     */
+    public function testAllowSelfSignedDefaultsToFalse() {
+        $acc = new SMTPAccount();
+        $this->assertFalse($acc->isAllowSelfSigned());
+    }
+    /**
+     * @test
+     */
+    public function testVerifySslViaConstructor() {
+        $acc = new SMTPAccount([
+            AccountOption::VERIFY_SSL => false,
+        ]);
+        $this->assertFalse($acc->isVerifySsl());
+    }
+    /**
+     * @test
+     */
+    public function testAllowSelfSignedViaConstructor() {
+        $acc = new SMTPAccount([
+            AccountOption::ALLOW_SELF_SIGNED => true,
+        ]);
+        $this->assertTrue($acc->isAllowSelfSigned());
+    }
+    /**
+     * @test
+     */
+    public function testVerifySslSetter() {
+        $acc = new SMTPAccount();
+        $acc->setVerifySsl(false);
+        $this->assertFalse($acc->isVerifySsl());
+        $acc->setVerifySsl(true);
+        $this->assertTrue($acc->isVerifySsl());
+    }
+    /**
+     * @test
+     */
+    public function testAllowSelfSignedSetter() {
+        $acc = new SMTPAccount();
+        $acc->setAllowSelfSigned(true);
+        $this->assertTrue($acc->isAllowSelfSigned());
+        $acc->setAllowSelfSigned(false);
+        $this->assertFalse($acc->isAllowSelfSigned());
+    }
+    /**
+     * @test
+     * Verify that verifySsl and allowSelfSigned can be independently configured:
+     * verifySsl=true + allowSelfSigned=true is a valid combination for
+     * internal servers with self-signed certificates.
+     */
+    public function testVerifySslTrueWithAllowSelfSignedTrue() {
+        $acc = new SMTPAccount([
+            AccountOption::VERIFY_SSL        => true,
+            AccountOption::ALLOW_SELF_SIGNED => true,
+        ]);
+        $this->assertTrue($acc->isVerifySsl());
+        $this->assertTrue($acc->isAllowSelfSigned());
+    }
 }

@@ -250,6 +250,43 @@ $microsoftAccount = new SMTPAccount([
 
 See the [OAuth examples](examples/oauth-usage/) for complete setup instructions.
 
+### SSL/TLS Verification
+
+By default, SSL/TLS peer verification is **enabled** for all connections. This means:
+- The server certificate is verified against your system's CA bundle (`verify_peer = true`)
+- The certificate hostname must match the server address (`verify_peer_name = true`)
+- Self-signed certificates are rejected (`allow_self_signed = false`)
+
+This is the correct and secure default for any publicly trusted SMTP server.
+
+#### Internal servers with self-signed certificates
+
+```php
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS  => 'mail.internal.example.com',
+    AccountOption::PORT            => 587,
+    AccountOption::USERNAME        => 'no-reply@internal.example.com',
+    AccountOption::PASSWORD        => 'secret',
+    AccountOption::SENDER_ADDRESS  => 'no-reply@internal.example.com',
+    AccountOption::SENDER_NAME     => 'Internal Mailer',
+    AccountOption::ALLOW_SELF_SIGNED => true,  // allow self-signed cert; verify_peer stays on
+]);
+```
+
+#### Disable verification entirely (not recommended for production)
+
+```php
+$account = new SMTPAccount([
+    // ...
+    AccountOption::VERIFY_SSL => false,  // disables verify_peer and verify_peer_name
+]);
+```
+
+> **Warning:** Setting `VERIFY_SSL` to `false` exposes SMTP credentials to man-in-the-middle attacks.
+> Only use it in isolated/controlled environments.
+
+See the [SSL configuration example](examples/basic-usage/ssl-configuration.php) for a full demonstration.
+
 ### Attachments
 
 Attachments can be added using `Email::addAttachment()`. The parameter can be a file path string or an object of type `webfiori\file\File`.

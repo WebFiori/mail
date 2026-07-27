@@ -59,7 +59,9 @@ class SmtpTransport implements TransportInterface {
         if ($this->server === null) {
             $this->server = new SMTPServer(
                 $this->account->getServerAddress(),
-                $this->account->getPort()
+                $this->account->getPort(),
+                $this->account->isVerifySsl(),
+                $this->account->isAllowSelfSigned()
             );
         }
 

@@ -15,6 +15,18 @@ class SMTPAccount {
      */
     private $accessToken;
     /**
+     * Whether to allow self-signed SSL/TLS certificates.
+     *
+     * @var bool
+     */
+    private bool $allowSelfSigned = false;
+    /**
+     * Whether to verify SSL/TLS peer certificate.
+     *
+     * @var bool
+     */
+    private bool $verifySsl = true;
+    /**
      * The name of SMTP account.
      * 
      * @var string 
@@ -128,6 +140,14 @@ class SMTPAccount {
         if (isset($options[AccountOption::ACCESS_TOKEN])) {
             $this->setAccessToken($options[AccountOption::ACCESS_TOKEN]);
         }
+
+        if (isset($options[AccountOption::VERIFY_SSL])) {
+            $this->setVerifySsl((bool) $options[AccountOption::VERIFY_SSL]);
+        }
+
+        if (isset($options[AccountOption::ALLOW_SELF_SIGNED])) {
+            $this->setAllowSelfSigned((bool) $options[AccountOption::ALLOW_SELF_SIGNED]);
+        }
     }
     /**
      * Returns the OAuth access token.
@@ -136,6 +156,22 @@ class SMTPAccount {
      */
     public function getAccessToken(): ?string {
         return $this->accessToken;
+    }
+    /**
+     * Checks whether self-signed SSL/TLS certificates are allowed.
+     *
+     * @return bool True if self-signed certificates are allowed, false otherwise.
+     */
+    public function isAllowSelfSigned(): bool {
+        return $this->allowSelfSigned;
+    }
+    /**
+     * Checks whether SSL/TLS peer verification is enabled.
+     *
+     * @return bool True if SSL peer verification is enabled (default), false otherwise.
+     */
+    public function isVerifySsl(): bool {
+        return $this->verifySsl;
     }
     /**
      * Returns the name of the account.
@@ -204,6 +240,30 @@ class SMTPAccount {
      */
     public function setAccessToken(?string $token): void {
         $this->accessToken = $token;
+    }
+    /**
+     * Sets whether to allow self-signed SSL/TLS certificates.
+     *
+     * When true, connections to servers with self-signed certificates succeed
+     * even without a trusted CA chain. Peer and hostname verification still
+     * apply unless disabled via setVerifySsl(false).
+     *
+     * @param bool $allow True to allow self-signed certificates, false otherwise.
+     */
+    public function setAllowSelfSigned(bool $allow): void {
+        $this->allowSelfSigned = $allow;
+    }
+    /**
+     * Sets whether to verify the SSL/TLS peer certificate.
+     *
+     * When set to false, no certificate validation is performed and the
+     * connection is vulnerable to man-in-the-middle attacks. Only disable
+     * in controlled environments where SSL verification is not possible.
+     *
+     * @param bool $verify True to enable verification (default), false to disable.
+     */
+    public function setVerifySsl(bool $verify): void {
+        $this->verifySsl = $verify;
     }
     /**
      * Sets the name of the account.

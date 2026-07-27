@@ -828,7 +828,7 @@ class Email {
      */
     public function setSMTPAccount(SMTPAccount $account) : Email {
         $this->smtpAcc = $account;
-        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
+        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort(), $account->isVerifySsl(), $account->isAllowSelfSigned());
 
         return $this;
     }

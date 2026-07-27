@@ -60,13 +60,31 @@ class SMTPServer {
      */
     private $serverPort;
     /**
+     * Whether to allow self-signed SSL/TLS certificates.
+     *
+     * @var bool
+     */
+    private bool $allowSelfSigned;
+    /**
+     * Whether to verify SSL/TLS peer certificate.
+     *
+     * @var bool
+     */
+    private bool $verifySsl;
+    /**
      * Initiates new instance of the class.
      * 
      * @param string $serverAddress SMTP Server address such as 'smtp.example.com'.
      * 
      * @param int $port SMTP server port such as 25, 465 or 587.
+     *
+     * @param bool $verifySsl Whether to verify the server's SSL/TLS certificate.
+     * Defaults to true. Set to false only in controlled environments.
+     *
+     * @param bool $allowSelfSigned Whether to allow self-signed certificates.
+     * Only meaningful when $verifySsl is true. Defaults to false.
      */
-    public function __construct(string $serverAddress, int $port) {
+    public function __construct(string $serverAddress, int $port, bool $verifySsl = true, bool $allowSelfSigned = false) {
         $this->serverPort = $port;
         $this->serverHost = $serverAddress;
         $this->serverOptions = [];
@@ -75,6 +93,8 @@ class SMTPServer {
         $this->lastResponseCode = 0;
         $this->isWriting = false;
         $this->responseLog = [];
+        $this->verifySsl = $verifySsl;
+        $this->allowSelfSigned = $allowSelfSigned;
     }
 
     /**
@@ -465,11 +485,10 @@ class SMTPServer {
         if (function_exists('stream_socket_client')) {
             $context = stream_context_create([
                 'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true,
-
-                    'crypto_type' => STREAM_CRYPTO_METHOD_TLSv1_2_SERVER
+                    'verify_peer'      => $this->verifySsl,
+                    'verify_peer_name' => $this->verifySsl,
+                    'allow_self_signed' => $this->allowSelfSigned,
+                    'crypto_type' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT
                 ]
             ]);
 
