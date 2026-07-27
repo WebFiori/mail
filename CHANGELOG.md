@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.2.2](https://github.com/WebFiori/mail/compare/v2.2.1...v2.2.2) (2026-07-27)
+
+
+### Features
+
+* **oauth:** add OAuthTokenProvider interface, MicrosoftOAuthProvider, SESCredentialHelper ([8282dc3](https://github.com/WebFiori/mail/commit/8282dc33a2958b9a30644767f17480d353034af4))
+
+
+### Bug Fixes
+
+* **headers:** generate Message-ID header and wire In-Reply-To ([61f2734](https://github.com/WebFiori/mail/commit/61f2734c7b3936e51fe77ae4ebf5bbd8184b5fa6)), closes [#48](https://github.com/WebFiori/mail/issues/48)
+* **security:** enable SSL/TLS peer verification by default ([b6577d9](https://github.com/WebFiori/mail/commit/b6577d9ec4ec9196f71afb40a4bd89e7c30947ca)), closes [#45](https://github.com/WebFiori/mail/issues/45)
+* **timeout:** apply stream timeout after connect and retry with backoff ([995b666](https://github.com/WebFiori/mail/commit/995b6663d36fff98f6380fbbae7a1ca6614d2016)), closes [#50](https://github.com/WebFiori/mail/issues/50)
+* **validation:** validate email addresses in addTo/addCC/addBCC ([f471fca](https://github.com/WebFiori/mail/commit/f471fcaafce6c8bd48b60ddf2f26e676c64ea129)), closes [#46](https://github.com/WebFiori/mail/issues/46)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#73](https://github.com/WebFiori/mail/issues/73) from WebFiori/dev ([aaf454a](https://github.com/WebFiori/mail/commit/aaf454a51316a1cb82be7ebe7f7b48e871467cc2))
+
 ## [2.2.1](https://github.com/WebFiori/mail/compare/v2.2.0...v2.2.1) (2026-06-15)
 
 
