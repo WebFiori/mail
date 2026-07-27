@@ -218,37 +218,74 @@ Available fluent methods:
 
 ### OAuth Authentication
 
-WebFiori Mailer supports OAuth2 authentication for enhanced security with modern email providers:
+WebFiori Mailer supports OAuth2 authentication via the `OAuthTokenProvider` interface.
+Built-in providers handle token acquisition, caching, and refresh automatically.
+The token is fetched **lazily** — just before each send — so it is always fresh.
 
-#### Gmail OAuth
+#### Microsoft 365 / Outlook (`MicrosoftOAuthProvider`)
+
+Uses the Client Credentials flow against Microsoft Entra ID. No user interaction required.
 
 ```php
-$gmailAccount = new SMTPAccount([
-    AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
-    AccountOption::PORT => 587,
-    AccountOption::USERNAME => 'your-email@gmail.com',
-    AccountOption::ACCESS_TOKEN => 'your-oauth-access-token',
-    AccountOption::SENDER_ADDRESS => 'your-email@gmail.com',
-    AccountOption::SENDER_NAME => 'Your Name',
-    AccountOption::NAME => 'gmail-oauth'
+use WebFiori\Mail\MicrosoftOAuthProvider;
+
+$provider = new MicrosoftOAuthProvider(
+    tenantId:     getenv('SMTP_TENANT_ID'),
+    clientId:     getenv('SMTP_CLIENT_ID'),
+    clientSecret: getenv('SMTP_CLIENT_SECRET')
+);
+
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp.office365.com',
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => getenv('SMTP_USERNAME'),
+    AccountOption::SENDER_ADDRESS => getenv('SMTP_USERNAME'),
+    AccountOption::SENDER_NAME    => 'My App',
 ]);
+$account->setTokenProvider($provider);
 ```
 
-#### Microsoft OAuth
+#### Custom provider
+
+Implement `OAuthTokenProvider` for any other OAuth2-capable SMTP server:
 
 ```php
-$microsoftAccount = new SMTPAccount([
-    AccountOption::SERVER_ADDRESS => 'smtp-mail.outlook.com',
-    AccountOption::PORT => 587,
-    AccountOption::USERNAME => 'your-email@outlook.com',
-    AccountOption::ACCESS_TOKEN => 'your-microsoft-oauth-token',
-    AccountOption::SENDER_ADDRESS => 'your-email@outlook.com',
-    AccountOption::SENDER_NAME => 'Your Name',
-    AccountOption::NAME => 'microsoft-oauth'
-]);
+use WebFiori\Mail\OAuthTokenProvider;
+
+class MyProvider implements OAuthTokenProvider {
+    public function getToken(): string {
+        // fetch, cache, and return your access token
+    }
+}
+
+$account->setTokenProvider(new MyProvider());
 ```
 
 See the [OAuth examples](examples/oauth-usage/) for complete setup instructions.
+
+### Amazon SES SMTP (`SESCredentialHelper`)
+
+Amazon SES SMTP uses IAM credentials, not OAuth. `SESCredentialHelper` derives the
+required SMTP password from your IAM Secret Access Key:
+
+```php
+use WebFiori\Mail\SESCredentialHelper;
+
+$region  = 'us-east-1';
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => SESCredentialHelper::smtpEndpoint($region),
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => getenv('AWS_ACCESS_KEY_ID'),
+    AccountOption::PASSWORD       => SESCredentialHelper::deriveSmtpPassword(
+                                         getenv('AWS_SECRET_ACCESS_KEY'), $region
+                                     ),
+    AccountOption::SENDER_ADDRESS => 'sender@verified-domain.com',
+    AccountOption::SENDER_NAME    => 'My App',
+]);
+```
+
+No special transport needed — SES SMTP uses standard `AUTH LOGIN`.
+See the [SES example](examples/oauth-usage/ses-smtp.php) for full details.
 
 ### SSL/TLS Verification
 

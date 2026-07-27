@@ -107,6 +107,16 @@ class SmtpTransport implements TransportInterface {
     }
 
     private function authenticate(SMTPServer $server, SMTPAccount $account): bool {
+        // Token provider takes highest precedence — token is fetched lazily here,
+        // just before authentication, ensuring it is always fresh.
+        $provider = $account->getTokenProvider();
+
+        if ($provider !== null) {
+            $token = $provider->getToken();
+            return $server->authOAuth($account->getUsername(), $token);
+        }
+
+        // Fall back to static access token (backward compatibility)
         $accessToken = $account->getAccessToken();
 
         if ($accessToken !== null) {

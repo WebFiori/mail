@@ -15,6 +15,12 @@ class SMTPAccount {
      */
     private $accessToken;
     /**
+     * OAuth token provider for lazy token acquisition.
+     *
+     * @var OAuthTokenProvider|null
+     */
+    private ?OAuthTokenProvider $tokenProvider = null;
+    /**
      * Whether to allow self-signed SSL/TLS certificates.
      *
      * @var bool
@@ -208,6 +214,25 @@ class SMTPAccount {
      */
     public function getRetryBaseDelay(): int {
         return $this->retryBaseDelay;
+    }
+    /**
+     * Returns the OAuth token provider set on this account.
+     *
+     * @return OAuthTokenProvider|null The provider, or null if not set.
+     */
+    public function getTokenProvider(): ?OAuthTokenProvider {
+        return $this->tokenProvider;
+    }
+    /**
+     * Sets an OAuth token provider for this account.
+     *
+     * When set, the provider's getToken() is called lazily just before each
+     * send, taking precedence over any static access token set via setAccessToken().
+     *
+     * @param OAuthTokenProvider|null $provider The provider to use, or null to remove.
+     */
+    public function setTokenProvider(?OAuthTokenProvider $provider): void {
+        $this->tokenProvider = $provider;
     }
     /**
      * Returns the name of the account.
