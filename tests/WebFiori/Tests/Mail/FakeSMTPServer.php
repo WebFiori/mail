@@ -9,12 +9,32 @@ class FakeSMTPServer {
     private int $port;
     private bool $rejectAuth;
     private bool $greylist;
+    /** Delay in seconds before sending the initial 220 greeting (to trigger read timeout). */
+    private int $greetingDelay = 0;
+    /** Number of connections to refuse before accepting (to test retry logic). */
+    private int $refuseCount = 0;
     private ?int $pid = null;
 
     public function __construct(int $port = 2525) {
         $this->port = $port;
         $this->rejectAuth = false;
         $this->greylist = false;
+    }
+
+    /**
+     * Delay the initial 220 greeting by the given number of seconds.
+     * Used to trigger stream read timeout in tests.
+     */
+    public function setGreetingDelay(int $seconds): void {
+        $this->greetingDelay = $seconds;
+    }
+
+    /**
+     * Close the connection immediately for the first N clients before
+     * accepting normally. Used to test connection retry logic.
+     */
+    public function setRefuseCount(int $count): void {
+        $this->refuseCount = $count;
     }
 
     public function setRejectAuth(bool $reject): void {
@@ -36,6 +56,8 @@ class FakeSMTPServer {
         $port = $this->port;
         $rejectAuth = $this->rejectAuth;
         $greylist = $this->greylist;
+        $greetingDelay = $this->greetingDelay;
+        $refuseCount = $this->refuseCount;
 
         $this->pid = pcntl_fork();
 
@@ -45,7 +67,7 @@ class FakeSMTPServer {
 
         if ($this->pid === 0) {
             // Child process - run the server
-            $this->serve($port, $rejectAuth, $greylist);
+            $this->serve($port, $rejectAuth, $greylist, $greetingDelay, $refuseCount);
             exit(0);
         }
 
@@ -67,7 +89,7 @@ class FakeSMTPServer {
     /**
      * Run the server loop (called in child process).
      */
-    private function serve(int $port, bool $rejectAuth, bool $greylist): void {
+    private function serve(int $port, bool $rejectAuth, bool $greylist, int $greetingDelay = 0, int $refuseCount = 0): void {
         // Handle SIGTERM gracefully
         $running = true;
         pcntl_signal(SIGTERM, function () use (&$running) {
@@ -85,6 +107,7 @@ class FakeSMTPServer {
         }
 
         stream_set_blocking($socket, false);
+        $refusedSoFar = 0;
 
         while ($running) {
             pcntl_signal_dispatch();
@@ -92,16 +115,26 @@ class FakeSMTPServer {
             $conn = @stream_socket_accept($socket, 1);
 
             if ($conn) {
-                self::handleConnection($conn, $rejectAuth, $greylist);
-                fclose($conn);
+                if ($refusedSoFar < $refuseCount) {
+                    // Refuse: close immediately without greeting
+                    fclose($conn);
+                    $refusedSoFar++;
+                } else {
+                    self::handleConnection($conn, $rejectAuth, $greylist, $greetingDelay);
+                    fclose($conn);
+                }
             }
         }
 
         fclose($socket);
     }
 
-    private static function handleConnection($conn, bool $rejectAuth, bool $greylist): void {
-        stream_set_timeout($conn, 5);
+    private static function handleConnection($conn, bool $rejectAuth, bool $greylist, int $greetingDelay = 0): void {
+        stream_set_timeout($conn, 30);
+
+        if ($greetingDelay > 0) {
+            sleep($greetingDelay);
+        }
 
         // Send greeting
         fwrite($conn, "220 fake.smtp.local ESMTP FakeSMTP\r\n");

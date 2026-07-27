@@ -18,6 +18,12 @@ Demonstrates the fluent interface for method chaining:
 - Set recipients, subject, and priority in one flow
 - More readable and concise syntax
 
+### 🔒 ssl-configuration.php
+Demonstrates the three SSL/TLS verification modes:
+- Default secure mode — full peer verification (recommended for all public servers)
+- Self-signed certificate mode — peer verification on, self-signed certs allowed
+- Verification disabled — for isolated environments only (not recommended for production)
+
 ## Configuration
 
 Before running these examples, update the SMTP configuration:

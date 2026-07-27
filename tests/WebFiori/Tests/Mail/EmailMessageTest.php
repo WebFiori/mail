@@ -174,6 +174,64 @@ class EmailMessageTest extends TestCase {
 
     /**
      * @test
+     * Invalid addresses are rejected by addTo/addCC/addBCC.
+     */
+    public function testInvalidAddressRejected() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        // Clearly invalid
+        $this->assertFalse($sm->addTo('not-an-email'));
+        $this->assertFalse($sm->addTo('missing-at-sign'));
+        $this->assertFalse($sm->addTo('@nodomain.com'));
+        $this->assertFalse($sm->addTo('user@'));
+        $this->assertFalse($sm->addTo('user@.com'));
+        $this->assertFalse($sm->addTo('plain-text'));
+
+        // Same for CC and BCC
+        $this->assertFalse($sm->addCC('not-an-email'));
+        $this->assertFalse($sm->addBCC('not-an-email'));
+
+        // Nothing should have been added
+        $this->assertCount(0, $sm->getTo());
+        $this->assertCount(0, $sm->getCC());
+        $this->assertCount(0, $sm->getBCC());
+    }
+
+    /**
+     * @test
+     * Valid addresses are accepted.
+     */
+    public function testValidAddressAccepted() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        $this->assertTrue($sm->addTo('user@example.com'));
+        $this->assertTrue($sm->addTo('user.name+tag@sub.example.co.uk'));
+        $this->assertTrue($sm->addTo('user123@example.org'));
+        $this->assertTrue($sm->addCC('cc@example.com'));
+        $this->assertTrue($sm->addBCC('bcc@example.com'));
+
+        $this->assertCount(3, $sm->getTo());
+        $this->assertCount(1, $sm->getCC());
+        $this->assertCount(1, $sm->getBCC());
+    }
+
+    /**
+     * @test
+     * Unicode local parts are rejected until SMTPUTF8 is implemented (#69).
+     */
+    public function testUnicodeLocalPartRejected() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $sm = new Email($account);
+
+        $this->assertFalse($sm->addTo('用户@example.com'));
+        $this->assertFalse($sm->addTo('θσερ@example.com'));
+        $this->assertCount(0, $sm->getTo());
+    }
+
+    /**
+     * @test
      */
     public function testBeforeSend00() {
         $account = new SMTPAccount($this->getValidAccount());
@@ -767,5 +825,87 @@ class EmailMessageTest extends TestCase {
         $this->assertTrue($message->isSent());
         $this->assertCount(1, $nullTransport->sent);
         $this->assertSame($message, $nullTransport->sent[0]);
+    }
+
+    /**
+     * @test
+     * After send(), getMessageId() returns a non-empty string in angle-bracket format.
+     */
+    public function testMessageIdGeneratedAfterSend() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $message->setSubject('Message-ID Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Testing Message-ID generation.');
+
+        $this->assertEquals('', $message->getMessageId(), 'Message-ID should be empty before send');
+
+        $message->send();
+
+        $id = $message->getMessageId();
+        $this->assertNotEmpty($id, 'Message-ID should be set after send');
+        $this->assertStringStartsWith('<', $id, 'Message-ID should start with <');
+        $this->assertStringEndsWith('>', $id, 'Message-ID should end with >');
+        $this->assertStringContainsString('@127.0.0.1', $id, 'Message-ID should contain sender domain');
+    }
+
+    /**
+     * @test
+     * Each send generates a unique Message-ID.
+     */
+    public function testMessageIdIsUnique() {
+        $account = new SMTPAccount($this->getValidAccount());
+
+        $msg1 = new Email($account);
+        $msg1->setSubject('Message 1');
+        $msg1->addTo('a@example.com');
+        $msg1->insert('p')->text('First.');
+        $msg1->send();
+
+        $msg2 = new Email($account);
+        $msg2->setSubject('Message 2');
+        $msg2->addTo('b@example.com');
+        $msg2->insert('p')->text('Second.');
+        $msg2->send();
+
+        $this->assertNotEquals($msg1->getMessageId(), $msg2->getMessageId(), 'Each email must have a unique Message-ID');
+    }
+
+    /**
+     * @test
+     * setInReplyTo() normalises the ID and getInReplyTo() returns it.
+     */
+    public function testSetInReplyToNormalisesAngleBrackets() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $reply = new Email($account);
+
+        // Without angle brackets — should be normalised
+        $reply->setInReplyTo('abc123@example.com');
+        $this->assertEquals('<abc123@example.com>', $reply->getInReplyTo());
+
+        // With angle brackets — should be left as-is
+        $reply->setInReplyTo('<xyz789@example.com>');
+        $this->assertEquals('<xyz789@example.com>', $reply->getInReplyTo());
+    }
+
+    /**
+     * @test
+     * getInReplyTo() defaults to empty string.
+     */
+    public function testInReplyToDefaultsToEmpty() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $this->assertEquals('', $message->getInReplyTo());
+    }
+
+    /**
+     * @test
+     * setInReplyTo() returns the Email instance (fluent interface).
+     */
+    public function testSetInReplyToFluent() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $result = $message->setInReplyTo('<id@example.com>');
+        $this->assertSame($message, $result);
     }
 }

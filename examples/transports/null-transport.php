@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Example: Custom transport for testing.
  *
@@ -18,12 +19,12 @@ use WebFiori\Mail\TransportInterface;
 class NullTransport implements TransportInterface {
     public array $sent = [];
 
-    public function send(Email $message): void {
-        $this->sent[] = $message;
-    }
-
     public function getName(): string {
         return 'null';
+    }
+
+    public function send(Email $message): void {
+        $this->sent[] = $message;
     }
 }
 
@@ -47,6 +48,6 @@ $email->insert('p')->text('Thank you for signing up.');
 $email->send($transport);
 
 // Verify the email was "sent"
-echo "Emails captured: " . count($transport->sent) . "\n";
-echo "Subject: " . $transport->sent[0]->getSubject() . "\n";
-echo "Recipient: " . implode(', ', array_keys($transport->sent[0]->getTo())) . "\n";
+echo "Emails captured: ".count($transport->sent)."\n";
+echo "Subject: ".$transport->sent[0]->getSubject()."\n";
+echo "Recipient: ".implode(', ', array_keys($transport->sent[0]->getTo()))."\n";

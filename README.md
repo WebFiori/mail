@@ -219,37 +219,156 @@ Available fluent methods:
 
 ### OAuth Authentication
 
-WebFiori Mailer supports OAuth2 authentication for enhanced security with modern email providers:
+WebFiori Mailer supports OAuth2 authentication via the `OAuthTokenProvider` interface.
+Built-in providers handle token acquisition, caching, and refresh automatically.
+The token is fetched **lazily** — just before each send — so it is always fresh.
 
-#### Gmail OAuth
+#### Microsoft 365 / Outlook (`MicrosoftOAuthProvider`)
+
+Uses the Client Credentials flow against Microsoft Entra ID. No user interaction required.
 
 ```php
-$gmailAccount = new SMTPAccount([
-    AccountOption::SERVER_ADDRESS => 'smtp.gmail.com',
-    AccountOption::PORT => 587,
-    AccountOption::USERNAME => 'your-email@gmail.com',
-    AccountOption::ACCESS_TOKEN => 'your-oauth-access-token',
-    AccountOption::SENDER_ADDRESS => 'your-email@gmail.com',
-    AccountOption::SENDER_NAME => 'Your Name',
-    AccountOption::NAME => 'gmail-oauth'
+use WebFiori\Mail\MicrosoftOAuthProvider;
+
+$provider = new MicrosoftOAuthProvider(
+    tenantId:     getenv('SMTP_TENANT_ID'),
+    clientId:     getenv('SMTP_CLIENT_ID'),
+    clientSecret: getenv('SMTP_CLIENT_SECRET')
+);
+
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => 'smtp.office365.com',
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => getenv('SMTP_USERNAME'),
+    AccountOption::SENDER_ADDRESS => getenv('SMTP_USERNAME'),
+    AccountOption::SENDER_NAME    => 'My App',
 ]);
+$account->setTokenProvider($provider);
 ```
 
-#### Microsoft OAuth
+#### Custom provider
+
+Implement `OAuthTokenProvider` for any other OAuth2-capable SMTP server:
 
 ```php
-$microsoftAccount = new SMTPAccount([
-    AccountOption::SERVER_ADDRESS => 'smtp-mail.outlook.com',
-    AccountOption::PORT => 587,
-    AccountOption::USERNAME => 'your-email@outlook.com',
-    AccountOption::ACCESS_TOKEN => 'your-microsoft-oauth-token',
-    AccountOption::SENDER_ADDRESS => 'your-email@outlook.com',
-    AccountOption::SENDER_NAME => 'Your Name',
-    AccountOption::NAME => 'microsoft-oauth'
-]);
+use WebFiori\Mail\OAuthTokenProvider;
+
+class MyProvider implements OAuthTokenProvider {
+    public function getToken(): string {
+        // fetch, cache, and return your access token
+    }
+}
+
+$account->setTokenProvider(new MyProvider());
 ```
 
 See the [OAuth examples](examples/oauth-usage/) for complete setup instructions.
+
+### Amazon SES SMTP (`SESCredentialHelper`)
+
+Amazon SES SMTP uses IAM credentials, not OAuth. `SESCredentialHelper` derives the
+required SMTP password from your IAM Secret Access Key:
+
+```php
+use WebFiori\Mail\SESCredentialHelper;
+
+$region  = 'us-east-1';
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS => SESCredentialHelper::smtpEndpoint($region),
+    AccountOption::PORT           => 587,
+    AccountOption::USERNAME       => getenv('AWS_ACCESS_KEY_ID'),
+    AccountOption::PASSWORD       => SESCredentialHelper::deriveSmtpPassword(
+                                         getenv('AWS_SECRET_ACCESS_KEY'), $region
+                                     ),
+    AccountOption::SENDER_ADDRESS => 'sender@verified-domain.com',
+    AccountOption::SENDER_NAME    => 'My App',
+]);
+```
+
+No special transport needed — SES SMTP uses standard `AUTH LOGIN`.
+See the [SES example](examples/oauth-usage/ses-smtp.php) for full details.
+
+### SSL/TLS Verification
+
+By default, SSL/TLS peer verification is **enabled** for all connections. This means:
+- The server certificate is verified against your system's CA bundle (`verify_peer = true`)
+- The certificate hostname must match the server address (`verify_peer_name = true`)
+- Self-signed certificates are rejected (`allow_self_signed = false`)
+
+This is the correct and secure default for any publicly trusted SMTP server.
+
+#### Internal servers with self-signed certificates
+
+```php
+$account = new SMTPAccount([
+    AccountOption::SERVER_ADDRESS  => 'mail.internal.example.com',
+    AccountOption::PORT            => 587,
+    AccountOption::USERNAME        => 'no-reply@internal.example.com',
+    AccountOption::PASSWORD        => 'secret',
+    AccountOption::SENDER_ADDRESS  => 'no-reply@internal.example.com',
+    AccountOption::SENDER_NAME     => 'Internal Mailer',
+    AccountOption::ALLOW_SELF_SIGNED => true,  // allow self-signed cert; verify_peer stays on
+]);
+```
+
+#### Disable verification entirely (not recommended for production)
+
+```php
+$account = new SMTPAccount([
+    // ...
+    AccountOption::VERIFY_SSL => false,  // disables verify_peer and verify_peer_name
+]);
+```
+
+> **Warning:** Setting `VERIFY_SSL` to `false` exposes SMTP credentials to man-in-the-middle attacks.
+> Only use it in isolated/controlled environments.
+
+See the [SSL configuration example](examples/basic-usage/ssl-configuration.php) for a full demonstration.
+
+### Connection Retry and Timeout
+
+Failed connections are automatically retried with exponential backoff. The read timeout applies to every `fgets()` call after the connection is established, preventing indefinite hangs when a server becomes unresponsive mid-session.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `AccountOption::MAX_RETRIES` | `3` | Number of reconnect attempts after failure |
+| `AccountOption::RETRY_DELAY` | `1` | Base delay in seconds between attempts (doubles each retry) |
+
+Backoff schedule with defaults: attempt 1 immediate, attempt 2 waits 1s, attempt 3 waits 2s, attempt 4 waits 4s.
+
+```php
+$account = new SMTPAccount([
+    // ...
+    AccountOption::MAX_RETRIES => 5,  // retry up to 5 times
+    AccountOption::RETRY_DELAY => 2,  // backoff: 2s, 4s, 8s, 16s, 32s
+]);
+
+// Disable retries entirely:
+$account->setMaxRetries(0);
+```
+
+> **Note:** Retries only apply to TCP connection establishment. A `SMTPException` thrown during `read()` due to a timeout means the session state is unknown and cannot be safely retried in place — the caller should reconnect from scratch.
+
+> See [ADR-0032](https://github.com/WebFiori/docs/blob/main/adr/0032-smtp-timeout-and-retry-backoff.md) for the full design rationale.
+
+### Message-ID and Reply Threading
+
+Every sent email automatically gets a unique `Message-ID` header (RFC 5322). After calling `send()`, you can read it back:
+
+```php
+$email->send();
+echo $email->getMessageId(); // e.g. <a3f2...@smtp.gmail.com>
+```
+
+To send a reply that threads correctly in email clients, set the `In-Reply-To` header:
+
+```php
+$reply = new Email($account);
+$reply->setInReplyTo($originalEmail->getMessageId());
+$reply->setSubject('Re: Original Subject');
+$reply->addTo('sender@example.com');
+$reply->send();
+```
 
 ### Attachments
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Example: Using SmtpTransport for connection reuse.
  *
@@ -44,6 +45,6 @@ foreach ($recipients as $recipient) {
         // Reset the connection for the next message
         $transport->getServer()->reset();
     } catch (Exception $e) {
-        echo "Failed for $recipient: " . $e->getMessage() . "\n";
+        echo "Failed for $recipient: ".$e->getMessage()."\n";
     }
 }

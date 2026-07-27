@@ -60,6 +60,7 @@ class Email {
     private $isSent;
 
     private $log;
+    private string $messageId = '';
     private $mode;
     private $modeConfig;
     private $priority;
@@ -107,7 +108,8 @@ class Email {
             'to' => []
         ];
         $this->attachments = [];
-        $this->inReplyTo = [];
+        $this->inReplyTo = '';
+        $this->messageId = '';
         $this->beforeSendPool = [];
         $this->afterSendPool = [];
         $this->isSent = false;
@@ -190,12 +192,13 @@ class Email {
      * Adds new receiver address to the list of 'bcc' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string|null $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addBCC(string $address, string|null $name = null): bool {
@@ -227,12 +230,13 @@ class Email {
      * Adds new receiver address to the list of 'cc' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addCC(string $address, string|null $name = null) : bool {
@@ -270,12 +274,13 @@ class Email {
      * Adds new receiver address to the list of 'to' receivers.
      * 
      * @param string $address The email address of the receiver (such as 'example@example.com').
+     * The address is validated using RFC 5321/5322 syntax rules. Addresses with Unicode
+     * characters in the local part are rejected until SMTPUTF8 support is added (see #69).
      * 
      * @param string $name An optional receiver name. If not provided, the 
      * email address is used as name.
      * 
-     * @return bool If the address is added, the method will return 
-     * true. False otherwise.
+     * @return bool True if the address is valid and was added, false otherwise.
      * 
      */
     public function addTo(string $address, string|null $name = null) : bool {
@@ -410,6 +415,14 @@ class Email {
         return $this->document;
     }
     /**
+     * Returns the Message-ID of the email being replied to.
+     *
+     * @return string The In-Reply-To Message-ID, or empty string if not set.
+     */
+    public function getInReplyTo() : string {
+        return $this->inReplyTo;
+    }
+    /**
      * Returns the language code of the email.
      * 
      * @return string|null Two digit language code. In case language is not set, the 
@@ -418,6 +431,9 @@ class Email {
      */
     public function getLang() {
         return $this->getDocument()->getLanguage();
+    }
+    public function getLog() : array {
+        return $this->getSMTPServer()->getLog();
     }
     /**
      * Returns an array that contains log messages which are generated 
@@ -432,8 +448,16 @@ class Email {
      * </ul>
      * 
      */
-    public function getLog() : array {
-        return $this->getSMTPServer()->getLog();
+    /**
+     * Returns the Message-ID that was generated and sent with this email.
+     *
+     * The value is populated during send(). Returns an empty string if the
+     * message has not been sent yet.
+     *
+     * @return string The Message-ID including angle brackets, e.g. '<abc123@smtp.example.com>'.
+     */
+    public function getMessageId() : string {
+        return $this->messageId;
     }
     /**
      * Returns the mode at which the message will use when the method 'send' is called.
@@ -735,6 +759,31 @@ class Email {
         $this->invokeAfterSend();
     }
     /**
+     * Sets the Message-ID of the email being replied to.
+     *
+     * When set, an In-Reply-To header is included in the outgoing message,
+     * allowing email clients to thread replies correctly.
+     *
+     * @param string $messageId The Message-ID to reply to, with or without
+     * angle brackets (e.g. '<abc123@example.com>' or 'abc123@example.com').
+     *
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function setInReplyTo(string $messageId) : Email {
+        $trimmed = trim($messageId);
+
+        if (strlen($trimmed) > 0) {
+            // Normalise: ensure angle brackets
+            if ($trimmed[0] !== '<') {
+                $trimmed = '<'.$trimmed.'>';
+            }
+            $this->inReplyTo = $trimmed;
+        }
+
+        return $this;
+    }
+    /**
      * Sets the display language of the email.
      * 
      * The length of the given string must be 2 characters in order to set the 
@@ -754,6 +803,17 @@ class Email {
         }
 
         return $this;
+    }
+    /**
+     * Sets the Message-ID of this email.
+     *
+     * This is called internally by the transport layer after generating
+     * the header. Callers should not normally set this manually.
+     *
+     * @param string $id The generated Message-ID including angle brackets.
+     */
+    public function setMessageId(string $id): void {
+        $this->messageId = $id;
     }
     /**
      * Sets the mode at which the message will use when the send method is called.
@@ -828,7 +888,7 @@ class Email {
      */
     public function setSMTPAccount(SMTPAccount $account) : Email {
         $this->smtpAcc = $account;
-        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort());
+        $this->smtpServer = new SMTPServer($account->getServerAddress(), $account->getPort(), $account->isVerifySsl(), $account->isAllowSelfSigned(), $account->getMaxRetries(), $account->getRetryBaseDelay());
 
         return $this;
     }
@@ -905,7 +965,7 @@ class Email {
             $nameTrimmed = $addressTrimmed;
         }
 
-        if (strlen($addressTrimmed) != 0 && in_array($type, ['cc', 'bcc', 'to'])) {
+        if (filter_var($addressTrimmed, FILTER_VALIDATE_EMAIL) !== false && in_array($type, ['cc', 'bcc', 'to'])) {
             $this->receiversArr[$type][$addressTrimmed] = $nameTrimmed;
 
             return true;

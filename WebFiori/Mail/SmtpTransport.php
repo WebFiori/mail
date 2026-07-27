@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -59,7 +60,11 @@ class SmtpTransport implements TransportInterface {
         if ($this->server === null) {
             $this->server = new SMTPServer(
                 $this->account->getServerAddress(),
-                $this->account->getPort()
+                $this->account->getPort(),
+                $this->account->isVerifySsl(),
+                $this->account->isAllowSelfSigned(),
+                $this->account->getMaxRetries(),
+                $this->account->getRetryBaseDelay()
             );
         }
 
@@ -103,6 +108,17 @@ class SmtpTransport implements TransportInterface {
     }
 
     private function authenticate(SMTPServer $server, SMTPAccount $account): bool {
+        // Token provider takes highest precedence — token is fetched lazily here,
+        // just before authentication, ensuring it is always fresh.
+        $provider = $account->getTokenProvider();
+
+        if ($provider !== null) {
+            $token = $provider->getToken();
+
+            return $server->authOAuth($account->getUsername(), $token);
+        }
+
+        // Fall back to static access token (backward compatibility)
         $accessToken = $account->getAccessToken();
 
         if ($accessToken !== null) {
@@ -187,6 +203,17 @@ class SmtpTransport implements TransportInterface {
         $server->sendCommand('CC: '.$this->formatRecipients($message->getCC()));
         $server->sendCommand('BCC: '.$this->formatRecipients($message->getBCC()));
         $server->sendCommand('Date:'.date('r (T)'));
+        $messageId = '<'.bin2hex(random_bytes(16)).'@'.$acc->getServerAddress().'>';
+        $server->sendCommand('Message-ID: '.$messageId);
+
+        // Store the generated ID on the message so callers can read it after send()
+        $message->setMessageId($messageId);
+
+        if (strlen($message->getInReplyTo()) > 0) {
+            $server->sendCommand('In-Reply-To: '.$message->getInReplyTo());
+            $server->sendCommand('References: '.$message->getInReplyTo());
+        }
+
         $server->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($message->getSubject()).'?=');
         $server->sendCommand('MIME-Version: 1.0');
     }
