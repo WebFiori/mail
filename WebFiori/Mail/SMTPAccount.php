@@ -15,36 +15,6 @@ class SMTPAccount {
      */
     private $accessToken;
     /**
-     * OAuth token provider for lazy token acquisition.
-     *
-     * @var OAuthTokenProvider|null
-     */
-    private ?OAuthTokenProvider $tokenProvider = null;
-    /**
-     * Whether to allow self-signed SSL/TLS certificates.
-     *
-     * @var bool
-     */
-    private bool $allowSelfSigned = false;
-    /**
-     * Maximum number of connection retry attempts.
-     *
-     * @var int
-     */
-    private int $maxRetries = 3;
-    /**
-     * Base delay in seconds between retry attempts (doubles each attempt).
-     *
-     * @var int
-     */
-    private int $retryBaseDelay = 1;
-    /**
-     * Whether to verify SSL/TLS peer certificate.
-     *
-     * @var bool
-     */
-    private bool $verifySsl = true;
-    /**
      * The name of SMTP account.
      * 
      * @var string 
@@ -58,12 +28,24 @@ class SMTPAccount {
      */
     private $address;
     /**
+     * Whether to allow self-signed SSL/TLS certificates.
+     *
+     * @var bool
+     */
+    private bool $allowSelfSigned = false;
+    /**
      * Server address of the email account.
      * 
      * @var string
      * 
      */
     private $emailServerAddress;
+    /**
+     * Maximum number of connection retry attempts.
+     *
+     * @var int
+     */
+    private int $maxRetries = 3;
     /**
      * The name of the email account.
      * 
@@ -86,12 +68,30 @@ class SMTPAccount {
      */
     private $port;
     /**
+     * Base delay in seconds between retry attempts (doubles each attempt).
+     *
+     * @var int
+     */
+    private int $retryBaseDelay = 1;
+    /**
+     * OAuth token provider for lazy token acquisition.
+     *
+     * @var OAuthTokenProvider|null
+     */
+    private ?OAuthTokenProvider $tokenProvider = null;
+    /**
      * The username that is used to log-in.
      * 
      * @var string
      * 
      */
     private $userName;
+    /**
+     * Whether to verify SSL/TLS peer certificate.
+     *
+     * @var bool
+     */
+    private bool $verifySsl = true;
     /**
      * Creates new instance of the class.
      * 
@@ -184,57 +184,6 @@ class SMTPAccount {
         return $this->accessToken;
     }
     /**
-     * Checks whether self-signed SSL/TLS certificates are allowed.
-     *
-     * @return bool True if self-signed certificates are allowed, false otherwise.
-     */
-    public function isAllowSelfSigned(): bool {
-        return $this->allowSelfSigned;
-    }
-    /**
-     * Checks whether SSL/TLS peer verification is enabled.
-     *
-     * @return bool True if SSL peer verification is enabled (default), false otherwise.
-     */
-    public function isVerifySsl(): bool {
-        return $this->verifySsl;
-    }
-    /**
-     * Returns the maximum number of connection retry attempts.
-     *
-     * @return int
-     */
-    public function getMaxRetries(): int {
-        return $this->maxRetries;
-    }
-    /**
-     * Returns the base delay in seconds between connection retry attempts.
-     *
-     * @return int
-     */
-    public function getRetryBaseDelay(): int {
-        return $this->retryBaseDelay;
-    }
-    /**
-     * Returns the OAuth token provider set on this account.
-     *
-     * @return OAuthTokenProvider|null The provider, or null if not set.
-     */
-    public function getTokenProvider(): ?OAuthTokenProvider {
-        return $this->tokenProvider;
-    }
-    /**
-     * Sets an OAuth token provider for this account.
-     *
-     * When set, the provider's getToken() is called lazily just before each
-     * send, taking precedence over any static access token set via setAccessToken().
-     *
-     * @param OAuthTokenProvider|null $provider The provider to use, or null to remove.
-     */
-    public function setTokenProvider(?OAuthTokenProvider $provider): void {
-        $this->tokenProvider = $provider;
-    }
-    /**
      * Returns the name of the account.
      * 
      * The name of the account is used by the class 'EmailMessage' when creating 
@@ -255,6 +204,14 @@ class SMTPAccount {
         return $this->address;
     }
     /**
+     * Returns the maximum number of connection retry attempts.
+     *
+     * @return int
+     */
+    public function getMaxRetries(): int {
+        return $this->maxRetries;
+    }
+    /**
      * Returns the password of the email account.
      * 
      * @return string The password of the email account.
@@ -269,6 +226,14 @@ class SMTPAccount {
      */
     public function getPort() : int {
         return $this->port;
+    }
+    /**
+     * Returns the base delay in seconds between connection retry attempts.
+     *
+     * @return int
+     */
+    public function getRetryBaseDelay(): int {
+        return $this->retryBaseDelay;
     }
     /**
      * Returns the name of the sender.
@@ -287,6 +252,14 @@ class SMTPAccount {
         return $this->emailServerAddress;
     }
     /**
+     * Returns the OAuth token provider set on this account.
+     *
+     * @return OAuthTokenProvider|null The provider, or null if not set.
+     */
+    public function getTokenProvider(): ?OAuthTokenProvider {
+        return $this->tokenProvider;
+    }
+    /**
      * Returns the username of the email account.
      * 
      * @return string The username of the email account.
@@ -295,12 +268,44 @@ class SMTPAccount {
         return $this->userName;
     }
     /**
+     * Checks whether self-signed SSL/TLS certificates are allowed.
+     *
+     * @return bool True if self-signed certificates are allowed, false otherwise.
+     */
+    public function isAllowSelfSigned(): bool {
+        return $this->allowSelfSigned;
+    }
+    /**
+     * Checks whether SSL/TLS peer verification is enabled.
+     *
+     * @return bool True if SSL peer verification is enabled (default), false otherwise.
+     */
+    public function isVerifySsl(): bool {
+        return $this->verifySsl;
+    }
+    /**
      * Sets the OAuth access token.
      * 
      * @param string|null $token The OAuth access token or null to clear it.
      */
     public function setAccessToken(?string $token): void {
         $this->accessToken = $token;
+    }
+    /**
+     * Sets the name of the account.
+     * 
+     * @param string $name The name of the account.
+     */
+    public function setAccountName(string $name) {
+        $this->accName = $name;
+    }
+    /**
+     * Sets the address of the sender.
+     * 
+     * @param string $address The address of the sender.
+     */
+    public function setAddress(string $address) {
+        $this->address = trim($address);
     }
     /**
      * Sets whether to allow self-signed SSL/TLS certificates.
@@ -327,47 +332,6 @@ class SMTPAccount {
         }
     }
     /**
-     * Sets the base delay in seconds between connection retry attempts.
-     *
-     * The actual delay doubles on each attempt (exponential backoff).
-     * Must be one or greater.
-     *
-     * @param int $seconds Base delay in seconds.
-     */
-    public function setRetryBaseDelay(int $seconds): void {
-        if ($seconds >= 1) {
-            $this->retryBaseDelay = $seconds;
-        }
-    }
-    /**
-     * Sets whether to verify the SSL/TLS peer certificate.
-     *
-     * When set to false, no certificate validation is performed and the
-     * connection is vulnerable to man-in-the-middle attacks. Only disable
-     * in controlled environments where SSL verification is not possible.
-     *
-     * @param bool $verify True to enable verification (default), false to disable.
-     */
-    public function setVerifySsl(bool $verify): void {
-        $this->verifySsl = $verify;
-    }
-    /**
-     * Sets the name of the account.
-     * 
-     * @param string $name The name of the account.
-     */
-    public function setAccountName(string $name) {
-        $this->accName = $name;
-    }
-    /**
-     * Sets the address of the sender.
-     * 
-     * @param string $address The address of the sender.
-     */
-    public function setAddress(string $address) {
-        $this->address = trim($address);
-    }
-    /**
      * Sets the password of the email account.
      * 
      * @param string $pass The password of the email account.
@@ -382,6 +346,19 @@ class SMTPAccount {
      */
     public function setPort(int $port) {
         $this->port = $port;
+    }
+    /**
+     * Sets the base delay in seconds between connection retry attempts.
+     *
+     * The actual delay doubles on each attempt (exponential backoff).
+     * Must be one or greater.
+     *
+     * @param int $seconds Base delay in seconds.
+     */
+    public function setRetryBaseDelay(int $seconds): void {
+        if ($seconds >= 1) {
+            $this->retryBaseDelay = $seconds;
+        }
     }
     /**
      * Sets the name of the sender.
@@ -400,11 +377,34 @@ class SMTPAccount {
         $this->emailServerAddress = trim($addr);
     }
     /**
+     * Sets an OAuth token provider for this account.
+     *
+     * When set, the provider's getToken() is called lazily just before each
+     * send, taking precedence over any static access token set via setAccessToken().
+     *
+     * @param OAuthTokenProvider|null $provider The provider to use, or null to remove.
+     */
+    public function setTokenProvider(?OAuthTokenProvider $provider): void {
+        $this->tokenProvider = $provider;
+    }
+    /**
      * Sets the username of the email account.
      * 
      * @param string $u The username of the email account.
      */
     public function setUsername(string $u) {
         $this->userName = trim($u);
+    }
+    /**
+     * Sets whether to verify the SSL/TLS peer certificate.
+     *
+     * When set to false, no certificate validation is performed and the
+     * connection is vulnerable to man-in-the-middle attacks. Only disable
+     * in controlled environments where SSL verification is not possible.
+     *
+     * @param bool $verify True to enable verification (default), false to disable.
+     */
+    public function setVerifySsl(bool $verify): void {
+        $this->verifySsl = $verify;
     }
 }

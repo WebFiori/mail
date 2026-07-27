@@ -58,9 +58,9 @@ class Email {
     private $document;
     private $inReplyTo;
     private $isSent;
-    private string $messageId = '';
 
     private $log;
+    private string $messageId = '';
     private $mode;
     private $modeConfig;
     private $priority;
@@ -415,6 +415,14 @@ class Email {
         return $this->document;
     }
     /**
+     * Returns the Message-ID of the email being replied to.
+     *
+     * @return string The In-Reply-To Message-ID, or empty string if not set.
+     */
+    public function getInReplyTo() : string {
+        return $this->inReplyTo;
+    }
+    /**
      * Returns the language code of the email.
      * 
      * @return string|null Two digit language code. In case language is not set, the 
@@ -423,6 +431,9 @@ class Email {
      */
     public function getLang() {
         return $this->getDocument()->getLanguage();
+    }
+    public function getLog() : array {
+        return $this->getSMTPServer()->getLog();
     }
     /**
      * Returns an array that contains log messages which are generated 
@@ -447,53 +458,6 @@ class Email {
      */
     public function getMessageId() : string {
         return $this->messageId;
-    }
-    /**
-     * Sets the Message-ID of this email.
-     *
-     * This is called internally by the transport layer after generating
-     * the header. Callers should not normally set this manually.
-     *
-     * @param string $id The generated Message-ID including angle brackets.
-     */
-    public function setMessageId(string $id): void {
-        $this->messageId = $id;
-    }
-    /**
-     * Returns the Message-ID of the email being replied to.
-     *
-     * @return string The In-Reply-To Message-ID, or empty string if not set.
-     */
-    public function getInReplyTo() : string {
-        return $this->inReplyTo;
-    }
-    /**
-     * Sets the Message-ID of the email being replied to.
-     *
-     * When set, an In-Reply-To header is included in the outgoing message,
-     * allowing email clients to thread replies correctly.
-     *
-     * @param string $messageId The Message-ID to reply to, with or without
-     * angle brackets (e.g. '<abc123@example.com>' or 'abc123@example.com').
-     *
-     * @return Email The method will return same instance at which the method is
-     * called on.
-     */
-    public function setInReplyTo(string $messageId) : Email {
-        $trimmed = trim($messageId);
-
-        if (strlen($trimmed) > 0) {
-            // Normalise: ensure angle brackets
-            if ($trimmed[0] !== '<') {
-                $trimmed = '<'.$trimmed.'>';
-            }
-            $this->inReplyTo = $trimmed;
-        }
-
-        return $this;
-    }
-    public function getLog() : array {
-        return $this->getSMTPServer()->getLog();
     }
     /**
      * Returns the mode at which the message will use when the method 'send' is called.
@@ -795,6 +759,31 @@ class Email {
         $this->invokeAfterSend();
     }
     /**
+     * Sets the Message-ID of the email being replied to.
+     *
+     * When set, an In-Reply-To header is included in the outgoing message,
+     * allowing email clients to thread replies correctly.
+     *
+     * @param string $messageId The Message-ID to reply to, with or without
+     * angle brackets (e.g. '<abc123@example.com>' or 'abc123@example.com').
+     *
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function setInReplyTo(string $messageId) : Email {
+        $trimmed = trim($messageId);
+
+        if (strlen($trimmed) > 0) {
+            // Normalise: ensure angle brackets
+            if ($trimmed[0] !== '<') {
+                $trimmed = '<'.$trimmed.'>';
+            }
+            $this->inReplyTo = $trimmed;
+        }
+
+        return $this;
+    }
+    /**
      * Sets the display language of the email.
      * 
      * The length of the given string must be 2 characters in order to set the 
@@ -814,6 +803,17 @@ class Email {
         }
 
         return $this;
+    }
+    /**
+     * Sets the Message-ID of this email.
+     *
+     * This is called internally by the transport layer after generating
+     * the header. Callers should not normally set this manually.
+     *
+     * @param string $id The generated Message-ID including angle brackets.
+     */
+    public function setMessageId(string $id): void {
+        $this->messageId = $id;
     }
     /**
      * Sets the mode at which the message will use when the send method is called.

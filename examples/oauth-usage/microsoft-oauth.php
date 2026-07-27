@@ -33,11 +33,11 @@ $provider = new MicrosoftOAuthProvider(
 // -------------------------------------------------------------------------
 $account = new SMTPAccount([
     AccountOption::SERVER_ADDRESS => 'smtp.office365.com',
-    AccountOption::PORT           => 587,
-    AccountOption::USERNAME       => getenv('SMTP_USERNAME'), // the sending mailbox address
+    AccountOption::PORT => 587,
+    AccountOption::USERNAME => getenv('SMTP_USERNAME'), // the sending mailbox address
     AccountOption::SENDER_ADDRESS => getenv('SMTP_USERNAME'),
-    AccountOption::SENDER_NAME    => 'My Application',
-    AccountOption::NAME           => 'no-reply',
+    AccountOption::SENDER_NAME => 'My Application',
+    AccountOption::NAME => 'no-reply',
 ]);
 $account->setTokenProvider($provider);
 
@@ -55,9 +55,9 @@ $email->insert('p')->text('No password was stored — only a short-lived access 
 try {
     $email->send();
     echo "Email sent successfully!\n";
-    echo "Message-ID: " . $email->getMessageId() . "\n";
+    echo "Message-ID: ".$email->getMessageId()."\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }
 
 // -------------------------------------------------------------------------
@@ -76,5 +76,5 @@ try {
     $email2->send();
     echo "Second email sent successfully!\n";
 } catch (Exception $e) {
-    echo "Failed: " . $e->getMessage() . "\n";
+    echo "Failed: ".$e->getMessage()."\n";
 }

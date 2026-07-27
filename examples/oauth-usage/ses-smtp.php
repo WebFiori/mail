@@ -24,8 +24,8 @@ use WebFiori\Mail\SMTPAccount;
 //   4. If your account is in the SES sandbox, verify recipient addresses too
 // -------------------------------------------------------------------------
 
-$region          = getenv('AWS_REGION') ?: 'us-east-1';
-$accessKeyId     = getenv('AWS_ACCESS_KEY_ID');      // SMTP username
+$region = getenv('AWS_REGION') ?: 'us-east-1';
+$accessKeyId = getenv('AWS_ACCESS_KEY_ID');      // SMTP username
 $secretAccessKey = getenv('AWS_SECRET_ACCESS_KEY');  // used to derive SMTP password
 
 // Derive the SES SMTP password from the IAM Secret Access Key.
@@ -39,12 +39,12 @@ $smtpPassword = SESCredentialHelper::deriveSmtpPassword($secretAccessKey, $regio
 // -------------------------------------------------------------------------
 $account = new SMTPAccount([
     AccountOption::SERVER_ADDRESS => SESCredentialHelper::smtpEndpoint($region),
-    AccountOption::PORT           => 587,
-    AccountOption::USERNAME       => $accessKeyId,
-    AccountOption::PASSWORD       => $smtpPassword,
+    AccountOption::PORT => 587,
+    AccountOption::USERNAME => $accessKeyId,
+    AccountOption::PASSWORD => $smtpPassword,
     AccountOption::SENDER_ADDRESS => 'sender@verified-domain.com',
-    AccountOption::SENDER_NAME    => 'My Application',
-    AccountOption::NAME           => 'ses-account',
+    AccountOption::SENDER_NAME => 'My Application',
+    AccountOption::NAME => 'ses-account',
 ]);
 
 // -------------------------------------------------------------------------
@@ -62,15 +62,15 @@ $info = $email->insert('div', ['style' => 'margin-top:16px;padding:12px;backgrou
 $info->addChild('strong')->text('Sending details:');
 $list = $info->addChild('ul');
 $list->addChild('li')->text("Region: {$region}");
-$list->addChild('li')->text("Endpoint: " . SESCredentialHelper::smtpEndpoint($region));
+$list->addChild('li')->text("Endpoint: ".SESCredentialHelper::smtpEndpoint($region));
 $list->addChild('li')->text("Access Key ID: {$accessKeyId}");
 
 try {
     $email->send();
     echo "Email sent successfully via SES!\n";
-    echo "Message-ID: " . $email->getMessageId() . "\n";
+    echo "Message-ID: ".$email->getMessageId()."\n";
 } catch (Exception $e) {
-    echo "Failed to send email: " . $e->getMessage() . "\n";
+    echo "Failed to send email: ".$e->getMessage()."\n";
 }
 
 // -------------------------------------------------------------------------

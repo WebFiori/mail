@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -48,15 +49,14 @@ namespace WebFiori\Mail;
  */
 class SESCredentialHelper {
     /**
-     * Version byte prepended to the derived key per AWS specification.
-     */
-    private const VERSION_BYTE = "\x04";
-
-    /**
      * The fixed message signed at each derivation step.
      * AWS uses "SendRawEmail" as the terminal message.
      */
     private const MESSAGE = 'SendRawEmail';
+    /**
+     * Version byte prepended to the derived key per AWS specification.
+     */
+    private const VERSION_BYTE = "\x04";
 
     /**
      * Derives the SMTP password for Amazon SES from an IAM Secret Access Key.
@@ -88,13 +88,13 @@ class SESCredentialHelper {
             throw new \InvalidArgumentException('region cannot be empty.');
         }
 
-        $kSecret  = hash_hmac('sha256', 'AWS4' . $secretAccessKey, 'AWS4_request', true);
-        $kDate    = hash_hmac('sha256', $region,        $kSecret,  true);
-        $kRegion  = hash_hmac('sha256', 'ses',          $kDate,    true);
+        $kSecret = hash_hmac('sha256', 'AWS4'.$secretAccessKey, 'AWS4_request', true);
+        $kDate = hash_hmac('sha256', $region,        $kSecret,  true);
+        $kRegion = hash_hmac('sha256', 'ses',          $kDate,    true);
         $kService = hash_hmac('sha256', 'aws4_request', $kRegion,  true);
         $kSigning = hash_hmac('sha256', self::MESSAGE,  $kService, true);
 
-        return base64_encode(self::VERSION_BYTE . $kSigning);
+        return base64_encode(self::VERSION_BYTE.$kSigning);
     }
 
     /**

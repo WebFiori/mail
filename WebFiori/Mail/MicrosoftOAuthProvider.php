@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -43,20 +44,6 @@ class MicrosoftOAuthProvider implements OAuthTokenProvider {
     private ?string $cachedToken = null;
 
     /**
-     * Unix timestamp at which the cached token expires.
-     *
-     * @var int
-     */
-    private int $expiresAt = 0;
-
-    /**
-     * Microsoft Entra ID tenant ID (Directory ID).
-     *
-     * @var string
-     */
-    private string $tenantId;
-
-    /**
      * Application (client) ID from the App Registration.
      *
      * @var string
@@ -69,6 +56,20 @@ class MicrosoftOAuthProvider implements OAuthTokenProvider {
      * @var string
      */
     private string $clientSecret;
+
+    /**
+     * Unix timestamp at which the cached token expires.
+     *
+     * @var int
+     */
+    private int $expiresAt = 0;
+
+    /**
+     * Microsoft Entra ID tenant ID (Directory ID).
+     *
+     * @var string
+     */
+    private string $tenantId;
 
     /**
      * Creates a new Microsoft OAuth provider.
@@ -92,8 +93,8 @@ class MicrosoftOAuthProvider implements OAuthTokenProvider {
             throw new \InvalidArgumentException('clientSecret cannot be empty.');
         }
 
-        $this->tenantId     = trim($tenantId);
-        $this->clientId     = trim($clientId);
+        $this->tenantId = trim($tenantId);
+        $this->clientId = trim($clientId);
         $this->clientSecret = $clientSecret;
     }
 
@@ -131,30 +132,30 @@ class MicrosoftOAuthProvider implements OAuthTokenProvider {
         );
 
         $postFields = http_build_query([
-            'grant_type'    => 'client_credentials',
-            'client_id'     => $this->clientId,
+            'grant_type' => 'client_credentials',
+            'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'scope'         => 'https://outlook.office365.com/.default',
+            'scope' => 'https://outlook.office365.com/.default',
         ]);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL            => $url,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $postFields,
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $postFields,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
         ]);
 
-        $response  = curl_exec($ch);
-        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($response === false) {
             throw new \RuntimeException(
-                'MicrosoftOAuthProvider: cURL request failed: ' . $curlError
+                'MicrosoftOAuthProvider: cURL request failed: '.$curlError
             );
         }
 
@@ -168,7 +169,7 @@ class MicrosoftOAuthProvider implements OAuthTokenProvider {
         }
 
         $this->cachedToken = $data['access_token'];
-        $this->expiresAt   = time() + (int) ($data['expires_in'] ?? 3600);
+        $this->expiresAt = time() + (int) ($data['expires_in'] ?? 3600);
 
         return $this->cachedToken;
     }

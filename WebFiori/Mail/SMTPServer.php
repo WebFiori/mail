@@ -10,6 +10,12 @@ use WebFiori\Mail\Exceptions\SMTPException;
  */
 class SMTPServer {
     const NL = "\r\n";
+    /**
+     * Whether to allow self-signed SSL/TLS certificates.
+     *
+     * @var bool
+     */
+    private bool $allowSelfSigned;
     private $isWriting;
     private $lastCommand;
     /**
@@ -27,6 +33,12 @@ class SMTPServer {
      */
     private $lastResponseCode;
     /**
+     * Maximum number of connection retry attempts.
+     *
+     * @var int
+     */
+    private int $maxRetries;
+    /**
      *
      * @var array
      * 
@@ -38,6 +50,12 @@ class SMTPServer {
      * @var int 
      */
     private $responseTimeout;
+    /**
+     * Base delay in seconds between retry attempts.
+     *
+     * @var int
+     */
+    private int $retryBaseDelay;
     /**
      * The resource that is used to fire commands.
      * 
@@ -59,24 +77,6 @@ class SMTPServer {
      * 
      */
     private $serverPort;
-    /**
-     * Whether to allow self-signed SSL/TLS certificates.
-     *
-     * @var bool
-     */
-    private bool $allowSelfSigned;
-    /**
-     * Maximum number of connection retry attempts.
-     *
-     * @var int
-     */
-    private int $maxRetries;
-    /**
-     * Base delay in seconds between retry attempts.
-     *
-     * @var int
-     */
-    private int $retryBaseDelay;
     /**
      * Whether to verify SSL/TLS peer certificate.
      *
@@ -527,7 +527,7 @@ class SMTPServer {
         if (function_exists('stream_socket_client')) {
             $context = stream_context_create([
                 'ssl' => [
-                    'verify_peer'      => $this->verifySsl,
+                    'verify_peer' => $this->verifySsl,
                     'verify_peer_name' => $this->verifySsl,
                     'allow_self_signed' => $this->allowSelfSigned,
                     'crypto_type' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT

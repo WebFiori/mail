@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  *
@@ -113,6 +114,7 @@ class SmtpTransport implements TransportInterface {
 
         if ($provider !== null) {
             $token = $provider->getToken();
+
             return $server->authOAuth($account->getUsername(), $token);
         }
 
