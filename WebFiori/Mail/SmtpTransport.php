@@ -191,6 +191,17 @@ class SmtpTransport implements TransportInterface {
         $server->sendCommand('CC: '.$this->formatRecipients($message->getCC()));
         $server->sendCommand('BCC: '.$this->formatRecipients($message->getBCC()));
         $server->sendCommand('Date:'.date('r (T)'));
+        $messageId = '<'.bin2hex(random_bytes(16)).'@'.$acc->getServerAddress().'>';
+        $server->sendCommand('Message-ID: '.$messageId);
+
+        // Store the generated ID on the message so callers can read it after send()
+        $message->setMessageId($messageId);
+
+        if (strlen($message->getInReplyTo()) > 0) {
+            $server->sendCommand('In-Reply-To: '.$message->getInReplyTo());
+            $server->sendCommand('References: '.$message->getInReplyTo());
+        }
+
         $server->sendCommand('Subject:'.'=?UTF-8?B?'.base64_encode($message->getSubject()).'?=');
         $server->sendCommand('MIME-Version: 1.0');
     }

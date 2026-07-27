@@ -58,6 +58,7 @@ class Email {
     private $document;
     private $inReplyTo;
     private $isSent;
+    private string $messageId = '';
 
     private $log;
     private $mode;
@@ -107,7 +108,8 @@ class Email {
             'to' => []
         ];
         $this->attachments = [];
-        $this->inReplyTo = [];
+        $this->inReplyTo = '';
+        $this->messageId = '';
         $this->beforeSendPool = [];
         $this->afterSendPool = [];
         $this->isSent = false;
@@ -432,6 +434,61 @@ class Email {
      * </ul>
      * 
      */
+    /**
+     * Returns the Message-ID that was generated and sent with this email.
+     *
+     * The value is populated during send(). Returns an empty string if the
+     * message has not been sent yet.
+     *
+     * @return string The Message-ID including angle brackets, e.g. '<abc123@smtp.example.com>'.
+     */
+    public function getMessageId() : string {
+        return $this->messageId;
+    }
+    /**
+     * Sets the Message-ID of this email.
+     *
+     * This is called internally by the transport layer after generating
+     * the header. Callers should not normally set this manually.
+     *
+     * @param string $id The generated Message-ID including angle brackets.
+     */
+    public function setMessageId(string $id): void {
+        $this->messageId = $id;
+    }
+    /**
+     * Returns the Message-ID of the email being replied to.
+     *
+     * @return string The In-Reply-To Message-ID, or empty string if not set.
+     */
+    public function getInReplyTo() : string {
+        return $this->inReplyTo;
+    }
+    /**
+     * Sets the Message-ID of the email being replied to.
+     *
+     * When set, an In-Reply-To header is included in the outgoing message,
+     * allowing email clients to thread replies correctly.
+     *
+     * @param string $messageId The Message-ID to reply to, with or without
+     * angle brackets (e.g. '<abc123@example.com>' or 'abc123@example.com').
+     *
+     * @return Email The method will return same instance at which the method is
+     * called on.
+     */
+    public function setInReplyTo(string $messageId) : Email {
+        $trimmed = trim($messageId);
+
+        if (strlen($trimmed) > 0) {
+            // Normalise: ensure angle brackets
+            if ($trimmed[0] !== '<') {
+                $trimmed = '<'.$trimmed.'>';
+            }
+            $this->inReplyTo = $trimmed;
+        }
+
+        return $this;
+    }
     public function getLog() : array {
         return $this->getSMTPServer()->getLog();
     }

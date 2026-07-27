@@ -313,6 +313,25 @@ $account->setMaxRetries(0);
 
 > See [ADR-0032](https://github.com/WebFiori/docs/blob/main/adr/0032-smtp-timeout-and-retry-backoff.md) for the full design rationale.
 
+### Message-ID and Reply Threading
+
+Every sent email automatically gets a unique `Message-ID` header (RFC 5322). After calling `send()`, you can read it back:
+
+```php
+$email->send();
+echo $email->getMessageId(); // e.g. <a3f2...@smtp.gmail.com>
+```
+
+To send a reply that threads correctly in email clients, set the `In-Reply-To` header:
+
+```php
+$reply = new Email($account);
+$reply->setInReplyTo($originalEmail->getMessageId());
+$reply->setSubject('Re: Original Subject');
+$reply->addTo('sender@example.com');
+$reply->send();
+```
+
 ### Attachments
 
 Attachments can be added using `Email::addAttachment()`. The parameter can be a file path string or an object of type `webfiori\file\File`.

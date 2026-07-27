@@ -768,4 +768,86 @@ class EmailMessageTest extends TestCase {
         $this->assertCount(1, $nullTransport->sent);
         $this->assertSame($message, $nullTransport->sent[0]);
     }
+
+    /**
+     * @test
+     * After send(), getMessageId() returns a non-empty string in angle-bracket format.
+     */
+    public function testMessageIdGeneratedAfterSend() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $message->setSubject('Message-ID Test');
+        $message->addTo('recipient@example.com');
+        $message->insert('p')->text('Testing Message-ID generation.');
+
+        $this->assertEquals('', $message->getMessageId(), 'Message-ID should be empty before send');
+
+        $message->send();
+
+        $id = $message->getMessageId();
+        $this->assertNotEmpty($id, 'Message-ID should be set after send');
+        $this->assertStringStartsWith('<', $id, 'Message-ID should start with <');
+        $this->assertStringEndsWith('>', $id, 'Message-ID should end with >');
+        $this->assertStringContainsString('@127.0.0.1', $id, 'Message-ID should contain sender domain');
+    }
+
+    /**
+     * @test
+     * Each send generates a unique Message-ID.
+     */
+    public function testMessageIdIsUnique() {
+        $account = new SMTPAccount($this->getValidAccount());
+
+        $msg1 = new Email($account);
+        $msg1->setSubject('Message 1');
+        $msg1->addTo('a@example.com');
+        $msg1->insert('p')->text('First.');
+        $msg1->send();
+
+        $msg2 = new Email($account);
+        $msg2->setSubject('Message 2');
+        $msg2->addTo('b@example.com');
+        $msg2->insert('p')->text('Second.');
+        $msg2->send();
+
+        $this->assertNotEquals($msg1->getMessageId(), $msg2->getMessageId(), 'Each email must have a unique Message-ID');
+    }
+
+    /**
+     * @test
+     * setInReplyTo() normalises the ID and getInReplyTo() returns it.
+     */
+    public function testSetInReplyToNormalisesAngleBrackets() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $reply = new Email($account);
+
+        // Without angle brackets — should be normalised
+        $reply->setInReplyTo('abc123@example.com');
+        $this->assertEquals('<abc123@example.com>', $reply->getInReplyTo());
+
+        // With angle brackets — should be left as-is
+        $reply->setInReplyTo('<xyz789@example.com>');
+        $this->assertEquals('<xyz789@example.com>', $reply->getInReplyTo());
+    }
+
+    /**
+     * @test
+     * getInReplyTo() defaults to empty string.
+     */
+    public function testInReplyToDefaultsToEmpty() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $this->assertEquals('', $message->getInReplyTo());
+    }
+
+    /**
+     * @test
+     * setInReplyTo() returns the Email instance (fluent interface).
+     */
+    public function testSetInReplyToFluent() {
+        $account = new SMTPAccount($this->getValidAccount());
+        $message = new Email($account);
+        $result = $message->setInReplyTo('<id@example.com>');
+        $this->assertSame($message, $result);
+    }
 }
