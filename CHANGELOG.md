@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.3](https://github.com/WebFiori/mail/compare/v2.2.2...v2.2.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* **smtp:** skip rejected recipients instead of aborting entire send ([e8334f3](https://github.com/WebFiori/mail/commit/e8334f35260ea08847e81af78a2b0fdfd5d32e3d))
+* **smtp:** skip rejected recipients instead of aborting entire send ([559be7b](https://github.com/WebFiori/mail/commit/559be7b6572d39ba7ca040f254572d81606547ae)), closes [#49](https://github.com/WebFiori/mail/issues/49)
+
+
+### Miscellaneous Chores
+
+* normalize line endings to LF ([2d74297](https://github.com/WebFiori/mail/commit/2d74297bb3d9a69e28ee17305baf35d094e54edf))
+
 ## [2.2.2](https://github.com/WebFiori/mail/compare/v2.2.1...v2.2.2) (2026-07-27)
 
 
