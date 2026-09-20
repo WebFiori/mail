@@ -1067,20 +1067,29 @@ class Email {
     /**
      * @throws SMTPException
      */
-    private function receiversCommandHelper($type) {
+    private function receiversCommandHelper($type) : int {
         $server = $this->getSMTPServer();
+        $accepted = 0;
 
         foreach ($this->receiversArr[$type] as $address => $name) {
+            // Clear any prior per-recipient rejection so the guard in
+            // sendCommand() does not block this RCPT TO.
+            $server->clearErrorState();
             $server->sendCommand('RCPT TO: <'.$address.'>');
 
             if ($server->getLastResponseCode() == 451) {
                 // Greylisting: single immediate retry after brief delay.
-                // Reset to clear the 4xx error state before retrying.
                 $server->reset();
                 sleep(1);
                 $server->sendCommand('RCPT TO: <'.$address.'>');
             }
+
+            if ($server->getLastResponseCode() < 400) {
+                $accepted++;
+            }
         }
+
+        return $accepted;
     }
     private function setupBeoreTesting() {
         try {

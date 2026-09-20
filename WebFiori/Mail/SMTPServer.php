@@ -170,6 +170,22 @@ class SMTPServer {
 
         return $this->getLastResponseCode() == 235;
     }
+
+    /**
+     * Clears the last error response code without sending any command.
+     *
+     * Per RFC 5321, a 4xx/5xx rejection of an individual 'RCPT TO' is a
+     * per-recipient failure, not a session failure — the SMTP transaction
+     * remains valid and the next 'RCPT TO' may be sent. This method clears the
+     * stored error state so that {@see sendCommand()} does not throw on the next
+     * call, without the extra round-trip and transaction-abort semantics of a
+     * full 'RSET' (which {@see reset()} performs).
+     *
+     * @return void
+     */
+    public function clearErrorState() : void {
+        $this->lastResponseCode = 0;
+    }
     /**
      * Connects to SMTP server.
      *
