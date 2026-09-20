@@ -91,7 +91,29 @@ class SmtpTransport implements TransportInterface {
         if ($isExternal || $this->authenticate($server, $acc)) {
             $server->sendCommand('MAIL FROM: <'.$acc->getAddress().'>');
 
-            $this->sendRecipients($message, $server);
+            $accepted = $this->sendRecipients($message, $server);
+
+            if ($accepted === 0) {
+                // All recipients were rejected. Capture the rejection details
+                // before clearing the error state, then close the connection
+                // cleanly (clearErrorState so QUIT itself is not blocked by the
+                // guard) before failing so the socket is not left dangling.
+                $lastResponse = $server->getLastResponse();
+                $lastCode = $server->getLastResponseCode();
+                $server->clearErrorState();
+                $server->sendCommand('QUIT');
+
+                throw new SMTPException(
+                    'All recipients were rejected by the SMTP server. '
+                        .'Last response: '.$lastResponse,
+                    $lastCode,
+                    $server->getLog()
+                );
+            }
+
+            // At least one recipient accepted. Clear any residual rejection
+            // state (from a trailing rejected recipient) so DATA is not blocked.
+            $server->clearErrorState();
             $server->sendCommand('DATA');
             $this->sendHeaders($message, $server, $acc);
             $this->sendBody($message, $server);
@@ -218,22 +240,64 @@ class SmtpTransport implements TransportInterface {
         $server->sendCommand('MIME-Version: 1.0');
     }
 
-    private function sendRecipients(Email $message, SMTPServer $server): void {
-        $this->sendRecipientsOfType($message->getTo(), $server);
-        $this->sendRecipientsOfType($message->getCC(), $server);
-        $this->sendRecipientsOfType($message->getBCC(), $server);
+    /**
+     * Sends 'RCPT TO' for all recipients (To, CC, BCC), tolerating
+     * per-recipient rejections.
+     *
+     * @param Email $message The message being sent.
+     * @param SMTPServer $server The connected SMTP server.
+     *
+     * @return int The total number of recipients accepted by the server.
+     */
+    private function sendRecipients(Email $message, SMTPServer $server): int {
+        $accepted = 0;
+        $accepted += $this->sendRecipientsOfType($message->getTo(), $server);
+        $accepted += $this->sendRecipientsOfType($message->getCC(), $server);
+        $accepted += $this->sendRecipientsOfType($message->getBCC(), $server);
+
+        return $accepted;
     }
 
-    private function sendRecipientsOfType(array $recipients, SMTPServer $server): void {
+    /**
+     * Sends 'RCPT TO' for each recipient of a given type, tolerating
+     * per-recipient rejections.
+     *
+     * A 4xx/5xx response to 'RCPT TO' is a per-recipient rejection, not a
+     * session failure (RFC 5321). Rejected recipients are skipped (their error
+     * state cleared so the next command can be sent) and the remaining
+     * recipients are still attempted. A 451 (greylisting) response triggers a
+     * single immediate retry.
+     *
+     * @param array<string, string> $recipients Map of address => name.
+     * @param SMTPServer $server The connected SMTP server.
+     *
+     * @return int The number of recipients accepted by the server.
+     */
+    private function sendRecipientsOfType(array $recipients, SMTPServer $server): int {
+        $accepted = 0;
+
         foreach ($recipients as $address => $name) {
+            // Clear any prior per-recipient rejection so the guard in
+            // sendCommand() does not block this RCPT TO.
+            $server->clearErrorState();
             $server->sendCommand('RCPT TO: <'.$address.'>');
 
             if ($server->getLastResponseCode() == 451) {
+                // Greylisting: single immediate retry after a brief delay.
                 $server->reset();
                 sleep(1);
                 $server->sendCommand('RCPT TO: <'.$address.'>');
             }
+
+            if ($server->getLastResponseCode() < 400) {
+                $accepted++;
+            }
+            // A 4xx/5xx rejection is left in place until the next iteration's
+            // clearErrorState(), so the final rejection's code/response remain
+            // available to the caller when every recipient is rejected.
         }
+
+        return $accepted;
     }
 
     private function trimControlChars(string $str): string {

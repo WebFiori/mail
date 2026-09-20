@@ -18,9 +18,11 @@ class EmailMessageTest extends TestCase {
     private static ?FakeSMTPServer $fakeServer = null;
     private static ?FakeSMTPServer $rejectServer = null;
     private static ?FakeSMTPServer $greylistServer = null;
+    private static ?FakeSMTPServer $rcptRejectServer = null;
     private static int $fakePort = 2525;
     private static int $rejectPort = 2526;
     private static int $greylistPort = 2527;
+    private static int $rcptRejectPort = 2528;
 
     public static function setUpBeforeClass(): void {
         self::$fakeServer = new FakeSMTPServer(self::$fakePort);
@@ -33,6 +35,11 @@ class EmailMessageTest extends TestCase {
         self::$greylistServer = new FakeSMTPServer(self::$greylistPort);
         self::$greylistServer->setGreylist(true);
         self::$greylistServer->start();
+
+        // Rejects any RCPT TO whose address contains "invalid" with 550.
+        self::$rcptRejectServer = new FakeSMTPServer(self::$rcptRejectPort);
+        self::$rcptRejectServer->setRejectRcptSubstr('invalid');
+        self::$rcptRejectServer->start();
     }
 
     public static function tearDownAfterClass(): void {
@@ -45,6 +52,21 @@ class EmailMessageTest extends TestCase {
         if (self::$greylistServer) {
             self::$greylistServer->stop();
         }
+        if (self::$rcptRejectServer) {
+            self::$rcptRejectServer->stop();
+        }
+    }
+
+    private function getRcptRejectAccount(): array {
+        return [
+            AccountOption::PORT => self::$rcptRejectPort,
+            AccountOption::SERVER_ADDRESS => '127.0.0.1',
+            AccountOption::USERNAME => 'test@example.com',
+            AccountOption::PASSWORD => 'password123',
+            AccountOption::SENDER_NAME => 'Test Sender',
+            AccountOption::SENDER_ADDRESS => 'test@example.com',
+            AccountOption::NAME => 'rcpt-reject-account'
+        ];
     }
 
     private function getValidAccount(): array {
@@ -423,6 +445,49 @@ class EmailMessageTest extends TestCase {
         $this->assertEquals(221, $lastLog['code']);
         // Sending again should throw
         $message->send();
+    }
+
+    /**
+     * @test
+     * Issue #49: a per-recipient RCPT TO rejection (5xx) must not abort the
+     * send. Remaining valid recipients are still attempted, DATA proceeds, and
+     * QUIT closes the connection cleanly.
+     */
+    public function testSend_PartialRecipientRejection_ContinuesAndSends() {
+        $message = new Email(new SMTPAccount($this->getRcptRejectAccount()));
+        $message->setSubject('Partial rejection test');
+        $message->insert('p')->text('Message body.');
+        $message->addTo('valid@example.com');
+        $message->addTo('invalid@example.com');   // rejected with 550
+        $message->addTo('also-valid@example.com');
+
+        $message->send();
+
+        // Send completed cleanly despite the rejected recipient.
+        $lastLog = $message->getSMTPServer()->getLastLogEntry();
+        $this->assertEquals('QUIT', $lastLog['command']);
+        $this->assertEquals(221, $lastLog['code']);
+    }
+
+    /**
+     * @test
+     * Issue #49: when every recipient is rejected, the send must throw an
+     * SMTPException (and QUIT is still sent to close the connection).
+     */
+    public function testSend_AllRecipientsRejected_Throws() {
+        $message = new Email(new SMTPAccount($this->getRcptRejectAccount()));
+        $message->setSubject('All rejected test');
+        $message->insert('p')->text('Message body.');
+        $message->addTo('invalid-1@example.com');
+        $message->addTo('invalid-2@example.com');
+
+        try {
+            $message->send();
+            $this->fail('Expected SMTPException was not thrown');
+        } catch (SMTPException $ex) {
+            $this->assertStringContainsString('rejected', strtolower($ex->getMessage()));
+            $this->assertGreaterThan(0, count($ex->getLog()));
+        }
     }
 
     /**

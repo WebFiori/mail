@@ -9,6 +9,8 @@ class FakeSMTPServer {
     private int $port;
     private bool $rejectAuth;
     private bool $greylist;
+    /** Substring; any RCPT TO address containing it is rejected with 550. */
+    private string $rejectRcptSubstr = '';
     /** Delay in seconds before sending the initial 220 greeting (to trigger read timeout). */
     private int $greetingDelay = 0;
     /** Number of connections to refuse before accepting (to test retry logic). */
@@ -45,6 +47,14 @@ class FakeSMTPServer {
         $this->greylist = $greylist;
     }
 
+    /**
+     * Reject any RCPT TO whose address contains the given substring with a
+     * 550 response. Used to test per-recipient rejection handling.
+     */
+    public function setRejectRcptSubstr(string $substr): void {
+        $this->rejectRcptSubstr = $substr;
+    }
+
     public function getPort(): int {
         return $this->port;
     }
@@ -58,6 +68,7 @@ class FakeSMTPServer {
         $greylist = $this->greylist;
         $greetingDelay = $this->greetingDelay;
         $refuseCount = $this->refuseCount;
+        $rejectRcptSubstr = $this->rejectRcptSubstr;
 
         $this->pid = pcntl_fork();
 
@@ -67,7 +78,7 @@ class FakeSMTPServer {
 
         if ($this->pid === 0) {
             // Child process - run the server
-            $this->serve($port, $rejectAuth, $greylist, $greetingDelay, $refuseCount);
+            $this->serve($port, $rejectAuth, $greylist, $greetingDelay, $refuseCount, $rejectRcptSubstr);
             exit(0);
         }
 
@@ -89,7 +100,7 @@ class FakeSMTPServer {
     /**
      * Run the server loop (called in child process).
      */
-    private function serve(int $port, bool $rejectAuth, bool $greylist, int $greetingDelay = 0, int $refuseCount = 0): void {
+    private function serve(int $port, bool $rejectAuth, bool $greylist, int $greetingDelay = 0, int $refuseCount = 0, string $rejectRcptSubstr = ''): void {
         // Handle SIGTERM gracefully
         $running = true;
         pcntl_signal(SIGTERM, function () use (&$running) {
@@ -120,7 +131,7 @@ class FakeSMTPServer {
                     fclose($conn);
                     $refusedSoFar++;
                 } else {
-                    self::handleConnection($conn, $rejectAuth, $greylist, $greetingDelay);
+                    self::handleConnection($conn, $rejectAuth, $greylist, $greetingDelay, $rejectRcptSubstr);
                     fclose($conn);
                 }
             }
@@ -129,7 +140,7 @@ class FakeSMTPServer {
         fclose($socket);
     }
 
-    private static function handleConnection($conn, bool $rejectAuth, bool $greylist, int $greetingDelay = 0): void {
+    private static function handleConnection($conn, bool $rejectAuth, bool $greylist, int $greetingDelay = 0, string $rejectRcptSubstr = ''): void {
         stream_set_timeout($conn, 30);
 
         if ($greetingDelay > 0) {
@@ -196,7 +207,9 @@ class FakeSMTPServer {
                     break;
 
                 case 'RCPT':
-                    if ($greylist && !$firstRcptDone) {
+                    if ($rejectRcptSubstr !== '' && strpos($line, $rejectRcptSubstr) !== false) {
+                        fwrite($conn, "550 No such user here\r\n");
+                    } else if ($greylist && !$firstRcptDone) {
                         $firstRcptDone = true;
                         fwrite($conn, "451 Greylisting in effect, please try again later\r\n");
                     } else {
