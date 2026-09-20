@@ -91,6 +91,7 @@ The entire library is a handful of classes. If all you need is to send HTML emai
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php82.yaml/badge.svg?branch=main"></a>  |
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php83.yaml/badge.svg?branch=main"></a>  |
 | <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php84.yaml/badge.svg?branch=main"></a>  |
+| <a target="_blank" href="https://github.com/WebFiori/mail/actions/workflows/php85.yaml"><img src="https://github.com/WebFiori/mail/actions/workflows/php85.yaml/badge.svg?branch=main"></a>  |
 
 ## Installation
 

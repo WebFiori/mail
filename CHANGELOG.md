@@ -1,5 +1,51 @@
 # Changelog
 
+## [2.2.2](https://github.com/WebFiori/mail/compare/v2.2.1...v2.2.2) (2026-07-27)
+
+
+### Features
+
+* **oauth:** add OAuthTokenProvider interface, MicrosoftOAuthProvider, SESCredentialHelper ([8282dc3](https://github.com/WebFiori/mail/commit/8282dc33a2958b9a30644767f17480d353034af4))
+
+
+### Bug Fixes
+
+* **headers:** generate Message-ID header and wire In-Reply-To ([61f2734](https://github.com/WebFiori/mail/commit/61f2734c7b3936e51fe77ae4ebf5bbd8184b5fa6)), closes [#48](https://github.com/WebFiori/mail/issues/48)
+* **security:** enable SSL/TLS peer verification by default ([b6577d9](https://github.com/WebFiori/mail/commit/b6577d9ec4ec9196f71afb40a4bd89e7c30947ca)), closes [#45](https://github.com/WebFiori/mail/issues/45)
+* **timeout:** apply stream timeout after connect and retry with backoff ([995b666](https://github.com/WebFiori/mail/commit/995b6663d36fff98f6380fbbae7a1ca6614d2016)), closes [#50](https://github.com/WebFiori/mail/issues/50)
+* **validation:** validate email addresses in addTo/addCC/addBCC ([f471fca](https://github.com/WebFiori/mail/commit/f471fcaafce6c8bd48b60ddf2f26e676c64ea129)), closes [#46](https://github.com/WebFiori/mail/issues/46)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#73](https://github.com/WebFiori/mail/issues/73) from WebFiori/dev ([aaf454a](https://github.com/WebFiori/mail/commit/aaf454a51316a1cb82be7ebe7f7b48e871467cc2))
+
+## [2.2.1](https://github.com/WebFiori/mail/compare/v2.2.0...v2.2.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **smtp:** use base64 encoding for email body parts ([18185e8](https://github.com/WebFiori/mail/commit/18185e83a3f907197dbc802505ca0a55cc2cd2fb))
+* **smtp:** use base64 encoding for email body parts ([cb17c1c](https://github.com/WebFiori/mail/commit/cb17c1cedab9a6eabeeca76e3186c18d185c59d9))
+
+## [2.2.0](https://github.com/WebFiori/mail/compare/v2.1.1...v2.2.0) (2026-06-13)
+
+
+### Features
+
+* Add SMTP enhancements for connection reuse, multipart/alternative, and greylisting retry ([ebb9ec2](https://github.com/WebFiori/mail/commit/ebb9ec2ed2f1ba72346c2424f0b4339ca349333b))
+* Add TransportInterface and SmtpTransport ([b8fdc83](https://github.com/WebFiori/mail/commit/b8fdc832cd659f4a79feda5a3cd3c320191a0afc))
+* Add TransportInterface and SmtpTransport ([a53c1e9](https://github.com/WebFiori/mail/commit/a53c1e9bdb66516ba39550509bdd8f2be9872f5b))
+* SMTP enhancements for connection reuse, multipart/alternative, and greylisting retry ([d6460f2](https://github.com/WebFiori/mail/commit/d6460f20b73a755a1a33cdea88cc71ab13f5f77b))
+* v2.2.0 — Transport abstraction, SMTP enhancements, and README overhaul ([8f398d6](https://github.com/WebFiori/mail/commit/8f398d64ae23d1ce597884d19aef27eb1c2ec6e4))
+
+
+### Miscellaneous Chores
+
+* Add license header to new files ([4216b23](https://github.com/WebFiori/mail/commit/4216b23f660d75933603adbfc4b8192777cf3cb7))
+* Correcting License Headers ([ae3d154](https://github.com/WebFiori/mail/commit/ae3d15402075e78f4d2b69cc068093cd973724a4))
+* File Bump-up ([03faed1](https://github.com/WebFiori/mail/commit/03faed1a7bd5b4202a52880200de933a82c3affc))
+
 ## [2.1.1](https://github.com/WebFiori/mail/compare/v2.1.0...v2.1.1) (2026-06-02)
 
 
